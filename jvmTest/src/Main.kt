@@ -1,0 +1,1 @@
+internal fun main() = common.main()

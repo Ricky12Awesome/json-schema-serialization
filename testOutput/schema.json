@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "text": {
+      "type": "string",
+      "description": "This is text.",
+      "pattern": "[A-Z][a-z]+"
+    },
+    "list": {
+      "type": "array"
+    },
+    "enum": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
+    "specialEnum": {
+      "type": "string",
+      "enum": [
+        "First",
+        "Second",
+        "Third"
+      ]
+    },
+    "int": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 500
+    },
+    "double": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "bool": {
+      "type": "boolean"
+    },
+    "sub": {
+      "if": {
+        "type": "object"
+      },
+      "else": {
+        "type": "null"
+      },
+      "properties": {
+        "required": {
+          "type": "string"
+        },
+        "list": {
+          "type": "array"
+        }
+      },
+      "required": [
+        "required"
+      ]
+    }
+  },
+  "required": [
+  ]
+}

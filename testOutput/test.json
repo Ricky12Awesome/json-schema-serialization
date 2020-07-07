@@ -1,0 +1,15 @@
+{
+  "$schema": "./schema.json",
+  "text": "Text",
+  "list": [
+    "one",
+    "two",
+    "three"
+  ],
+  "enum": "A",
+  "specialEnum": "First",
+  "int": 33,
+  "double": 0.33,
+  "bool": false,
+  "sub": null
+}
