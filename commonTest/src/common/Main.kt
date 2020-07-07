@@ -3,9 +3,8 @@ package common
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
-import kotlinx.serialization.json.JsonObject
 import me.github.ricky12awesome.jss.JsonSchema
-import me.github.ricky12awesome.jss.jsonSchema
+import me.github.ricky12awesome.jss.stringifyToSchema
 import me.github.ricky12awesome.jss.stringifyWithSchema
 import writeTextToFile
 
@@ -36,28 +35,11 @@ data class SubTest(
   val list: List<Double> = listOf(1.0, 2.0, 3.0)
 )
 
-const val outputDirectory = "testOutput"
-
 fun main() {
   val json = Json(JsonConfiguration.Stable.copy(prettyPrint = true, indent = "  "))
-  val serializedSchema = json.stringify(JsonObject.serializer(), jsonSchema(Test.serializer()))
-  val serializedJson = json.stringifyWithSchema(Test.serializer(), Test(), "./schema.json")
+  val serializedSchema = json.stringifyToSchema(Test.serializer())
+  val serializedJson = json.stringifyWithSchema(Test.serializer(), Test(), "test.schema.json")
 
-  writeTextToFile("$outputDirectory/test.json", serializedJson)
-  writeTextToFile("$outputDirectory/schema.json", serializedSchema)
+  writeTextToFile("testOutput/test.json", serializedJson)
+  writeTextToFile("testOutput/test.schema.json", serializedSchema)
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

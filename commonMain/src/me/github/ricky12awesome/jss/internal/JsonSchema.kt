@@ -151,12 +151,12 @@ internal inline fun SerialDescriptor.jsonSchemaElement(
   }
 }
 
-// Since built-in json dsl isn't inlined, I made my own.
+// Since built-in json dsl isn't inlined, i made my own
 internal inline fun json(builder: JsonObjectBuilder.() -> Unit): JsonObject {
   return JsonObject(JsonObjectBuilder().apply(builder).content)
 }
 
-// Since built-in one is internal I have to this
+// Since built-in one is internal i have to do this
 internal class JsonObjectBuilder {
   internal val content: MutableMap<String, JsonElement> = linkedMapOf()
   infix fun String.to(value: JsonElement) = content.set(this, value)

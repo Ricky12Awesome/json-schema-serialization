@@ -1,5 +1,5 @@
 {
-  "$schema": "./schema.json",
+  "$schema": "test.schema.json",
   "text": "Text",
   "list": [
     "one",
