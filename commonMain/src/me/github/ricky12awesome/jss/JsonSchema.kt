@@ -99,10 +99,3 @@ fun jsonSchema(descriptor: SerialDescriptor): JsonObject {
  * same as doing `jsonSchema(serializer.descriptor)`
  */
 fun jsonSchema(serializer: SerializationStrategy<*>) = jsonSchema(serializer.descriptor)
-
-
-
-
-
-
-

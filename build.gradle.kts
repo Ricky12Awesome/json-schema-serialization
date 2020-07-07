@@ -1,6 +1,7 @@
 plugins {
   kotlin("multiplatform") version "1.3.72"
   kotlin("plugin.serialization") version "1.3.72"
+  `maven-publish`
 }
 
 repositories {
@@ -8,11 +9,15 @@ repositories {
 }
 
 kotlin {
-  /* Targets configuration omitted.
-  *  To find out how to configure the targets, please follow the link:
-  *  https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html#setting-up-targets */
+  jvm {
+    compilations.forEach {
+      it.compileKotlinTask.kotlinOptions.jvmTarget = "1.8"
+    }
+  }
 
-  jvm()
+  js {
+    nodejs()
+  }
 
   sourceSets {
     val commonMain by getting {
@@ -39,6 +44,19 @@ kotlin {
     val jvmTest by getting {
       dependencies {
         implementation(kotlin("test-junit5"))
+      }
+    }
+
+    val jsMain by getting {
+      dependencies {
+        implementation(kotlin("stdlib-js"))
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:0.20.0")
+      }
+    }
+
+    val jsTest by getting {
+      dependencies {
+        implementation(kotlin("test-js"))
       }
     }
 
