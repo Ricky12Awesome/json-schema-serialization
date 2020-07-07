@@ -100,6 +100,7 @@ if (bintrayApiKey != null && bintrayUser != null || bintrayRepo != null) {
     configure(pkg, closureOf<PackageConfig> {
       repo = bintrayRepo
       name = project.name
+      githubRepo = "https://github.com/Ricky12Awesome/json-schema-serialization"
       vcsUrl = "https://github.com/Ricky12Awesome/json-schema-serialization.git"
       setLicenses("MIT")
 
