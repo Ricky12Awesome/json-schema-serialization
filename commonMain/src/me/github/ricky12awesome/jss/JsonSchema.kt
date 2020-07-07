@@ -13,7 +13,7 @@ annotation class JsonSchema {
    */
   @SerialInfo
   @Repeatable
-  @Retention(AnnotationRetention.RUNTIME)
+  @Retention(AnnotationRetention.BINARY)
   @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
   annotation class Description(val lines: Array<out String>)
 
@@ -21,7 +21,7 @@ annotation class JsonSchema {
    * Enum-like values for non-enum string
    */
   @SerialInfo
-  @Retention(AnnotationRetention.RUNTIME)
+  @Retention(AnnotationRetention.BINARY)
   @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
   annotation class StringEnum(val values: Array<out String>)
 
@@ -32,7 +32,7 @@ annotation class JsonSchema {
    * [PrimitiveKind.BYTE], [PrimitiveKind.SHORT], [PrimitiveKind.INT], [PrimitiveKind.LONG]
    */
   @SerialInfo
-  @Retention(AnnotationRetention.RUNTIME)
+  @Retention(AnnotationRetention.BINARY)
   @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
   annotation class IntRange(val min: Long, val max: Long)
 
@@ -42,7 +42,7 @@ annotation class JsonSchema {
    * Only works when [SerialKind] is [PrimitiveKind.FLOAT] or [PrimitiveKind.DOUBLE]
    */
   @SerialInfo
-  @Retention(AnnotationRetention.RUNTIME)
+  @Retention(AnnotationRetention.BINARY)
   @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
   annotation class FloatRange(val min: Double, val max: Double)
 
@@ -52,7 +52,7 @@ annotation class JsonSchema {
    * Only works when [SerialKind] is [PrimitiveKind.STRING]
    */
   @SerialInfo
-  @Retention(AnnotationRetention.RUNTIME)
+  @Retention(AnnotationRetention.BINARY)
   @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
   annotation class Pattern(val pattern: String)
 }

@@ -1,12 +1,5 @@
-package common
-
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
 import me.github.ricky12awesome.jss.JsonSchema
-import me.github.ricky12awesome.jss.stringifyToSchema
-import me.github.ricky12awesome.jss.stringifyWithSchema
-import writeTextToFile
 
 @Serializable
 enum class TestEnum {
@@ -34,12 +27,3 @@ data class SubTest(
   val required: String,
   val list: List<Double> = listOf(1.0, 2.0, 3.0)
 )
-
-fun main() {
-  val json = Json(JsonConfiguration.Stable.copy(prettyPrint = true, indent = "  "))
-  val serializedSchema = json.stringifyToSchema(Test.serializer())
-  val serializedJson = json.stringifyWithSchema(Test.serializer(), Test(), "test.schema.json")
-
-  writeTextToFile("testOutput/test.json", serializedJson)
-  writeTextToFile("testOutput/test.schema.json", serializedSchema)
-}
