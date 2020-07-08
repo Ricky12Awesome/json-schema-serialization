@@ -52,8 +52,13 @@ internal fun SerialDescriptor.jsonSchemaObject(): JsonObject {
   }
 
   return jsonSchemaElement(annotations) {
-    "properties" to JsonObject(properties)
-    "required" to JsonArray(required)
+    if (properties.isNotEmpty()) {
+      "properties" to JsonObject(properties)
+    }
+
+    if (required.isNotEmpty()) {
+      "required" to JsonArray(required)
+    }
   }
 }
 
