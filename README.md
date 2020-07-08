@@ -1,4 +1,5 @@
 [![Download](https://api.bintray.com/packages/ricky12awesome/github/json-schema-serialization/images/download.svg?version=0.2) ](https://bintray.com/ricky12awesome/github/json-schema-serialization/0.2/link)
+[![](https://jitpack.io/v/Ricky12Awesome/json-schema-serialization.svg)](https://jitpack.io/#Ricky12Awesome/json-schema-serialization)
 
 # json-schema-serialization (jss)
 Adds support for Json Schema using [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization)
@@ -9,6 +10,30 @@ I'm new to Kotlin Multiplatform, so I don't know a good way to support native,
 this project doesn't use any platform-specific code, it's pure common code, 
 in its current state you can't just depend on common code with no platform target 
 (maybe you can, but I don't know how to do it).
+
+### Dependency
+You would need [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) setup to use this dependency
+##### Gradle / Gradle Kotlin DSL
+```kotlin
+repositories {
+  maven("https://dl.bintray.com/ricky12awesome/github")
+}
+
+dependencies {
+  implementation("com.github.Ricky12Awesome", "json-schema-serialization-jvm", "0.2")
+}
+```
+You can also get this on [Jitpack](https://jitpack.io/#Ricky12Awesome/json-schema-serialization/)
+```kotlin
+repositories {
+  maven("https://jitpack.io")
+}
+
+dependencies {
+  // Group "com.github.Ricky12Awesome" will not work, because jitpack treats this project as a multi-module project.
+  implementation("com.github.Ricky12Awesome.json-schema-serialization", "json-schema-serialization", "0.2")
+}
+```
 
 ### Usage
 Array Literals isn't supported in JS (yet), so you have to use `arrayOf` instead of `[]`
