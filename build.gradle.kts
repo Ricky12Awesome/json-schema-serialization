@@ -101,8 +101,8 @@ if (bintrayApiKey != null && bintrayUser != null || bintrayRepo != null) {
       repo = bintrayRepo
       name = project.name
       publicDownloadNumbers = true
-      issueTrackerUrl = "https://github.com/Ricky12Awesome/kpl/issues"
-      githubRepo = "https://github.com/Ricky12Awesome/json-schema-serialization"
+      issueTrackerUrl = "https://github.com/Ricky12Awesome/json-schema-serialization/issues"
+      githubRepo = "Ricky12Awesome/json-schema-serialization"
       vcsUrl = "https://github.com/Ricky12Awesome/json-schema-serialization.git"
       websiteUrl = githubRepo
 
