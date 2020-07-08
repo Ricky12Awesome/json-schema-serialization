@@ -100,12 +100,17 @@ if (bintrayApiKey != null && bintrayUser != null || bintrayRepo != null) {
     configure(pkg, closureOf<PackageConfig> {
       repo = bintrayRepo
       name = project.name
+      publicDownloadNumbers = true
+      issueTrackerUrl = "https://github.com/Ricky12Awesome/kpl/issues"
       githubRepo = "https://github.com/Ricky12Awesome/json-schema-serialization"
       vcsUrl = "https://github.com/Ricky12Awesome/json-schema-serialization.git"
+      websiteUrl = githubRepo
+
       setLicenses("MIT")
 
       configure(version, closureOf<VersionConfig> {
         name = project.version.toString()
+        vcsTag = "v$name"
       })
     })
   }
