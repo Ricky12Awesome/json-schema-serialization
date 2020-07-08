@@ -5,10 +5,13 @@ Adds support for Json Schema using [kotlinx.serialization](https://github.com/Ko
 
 Supports JVM and JS
 
-I'm new to Kotlin Multiplatform, so I don't know a good way to support native, this project doesn't use any platform-specific code, it's pure common code, in it's current state you can't just depend on common code with no platofrm target (maybe you can but I don't know how to do it).
+I'm new to Kotlin Multiplatform, so I don't know a good way to support native, 
+this project doesn't use any platform-specific code, it's pure common code, 
+in its current state you can't just depend on common code with no platform target 
+(maybe you can, but I don't know how to do it).
 
 ### Usage
-Array Literials are not supported in JS (yet), so you have to use `arrayOf` instead of `[]`
+Array Literals isn't supported in JS (yet), so you have to use `arrayOf` instead of `[]`
 
 From: [commonTest/src/Main.kt](https://github.com/Ricky12Awesome/json-schema-serialization/blob/master/commonTest/src/Main.kt)
 ```kotlin
