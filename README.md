@@ -1,4 +1,4 @@
-[![Download](https://api.bintray.com/packages/ricky12awesome/github/json-schema-serialization/images/download.svg?version=0.2) ](https://bintray.com/ricky12awesome/github/json-schema-serialization/0.2/link)
+[![Download](https://api.bintray.com/packages/ricky12awesome/github/json-schema-serialization/images/download.svg?version=0.3)](https://bintray.com/ricky12awesome/github/json-schema-serialization/0.3/link)
 [![](https://jitpack.io/v/Ricky12Awesome/json-schema-serialization.svg)](https://jitpack.io/#Ricky12Awesome/json-schema-serialization)
 
 # json-schema-serialization (jss)
@@ -16,11 +16,12 @@ You would need [kotlinx.serialization](https://github.com/Kotlin/kotlinx.seriali
 ##### Gradle / Gradle Kotlin DSL
 ```kotlin
 repositories {
-  maven("https://dl.bintray.com/ricky12awesome/github")
+  jcenter()  
+  // or maven("https://dl.bintray.com/ricky12awesome/github")
 }
 
 dependencies {
-  implementation("com.github.Ricky12Awesome", "json-schema-serialization-jvm", "0.2")
+  implementation("com.github.Ricky12Awesome", "json-schema-serialization-jvm", "0.3")
 }
 ```
 You can also get this on [Jitpack](https://jitpack.io/#Ricky12Awesome/json-schema-serialization/)
@@ -31,7 +32,7 @@ repositories {
 
 dependencies {
   // Group "com.github.Ricky12Awesome" will not work, because jitpack treats this project as a multi-module project.
-  implementation("com.github.Ricky12Awesome.json-schema-serialization", "json-schema-serialization", "0.2")
+  implementation("com.github.Ricky12Awesome.json-schema-serialization", "json-schema-serialization", "0.3")
 }
 ```
 
@@ -136,8 +137,6 @@ val serializedSchema = json.stringifyToSchema(Test.serializer())
         "required"
       ]
     }
-  },
-  "required": [
-  ]
+  }
 }
 ```
