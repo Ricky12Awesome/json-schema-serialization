@@ -1,4 +1,4 @@
-[![Download](https://api.bintray.com/packages/ricky12awesome/github/json-schema-serialization/images/download.svg?version=0.3)](https://bintray.com/ricky12awesome/github/json-schema-serialization/0.3/link)
+[![Download](https://api.bintray.com/packages/ricky12awesome/github/json-schema-serialization/images/download.svg)](https://bintray.com/ricky12awesome/github/json-schema-serialization/_latestVersion)
 [![](https://jitpack.io/v/Ricky12Awesome/json-schema-serialization.svg)](https://jitpack.io/#Ricky12Awesome/json-schema-serialization)
 
 # json-schema-serialization (jss)
