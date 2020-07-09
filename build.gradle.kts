@@ -75,17 +75,20 @@ kotlin {
 val properties = Properties().apply {
   val file = file("local.properties")
   if (file.exists()) {
-    file.inputStream().use {
-      load(it)
-    }
+    file.inputStream().use(::load)
   }
 }
 
-val bintrayApiKey: String? = properties.getProperty("BINTRAY_API_KEY")
-val bintrayUser: String? = properties.getProperty("BINTRAY_USER")
-val bintrayRepo: String? = properties.getProperty("BINTRAY_REPO")
+val bintrayApiKey: String? = properties.getProperty("bintray.apiKey")
+val bintrayUser: String? = properties.getProperty("bintray.user")
+val bintrayRepo: String? = properties.getProperty("bintray.repo")
+val bintrayIssueTracker: String? = properties.getProperty("bintray.issueTracker")
+val bintrayGithubRepo: String? = properties.getProperty("bintray.githubRepo")
+val bintrayWebsite: String? = properties.getProperty("bintray.website")
+val bintrayVCS: String? = properties.getProperty("bintray.vcs")
+val all = arrayOf(bintrayUser, bintrayRepo, bintrayIssueTracker, bintrayGithubRepo, bintrayWebsite, bintrayVCS)
 
-if (bintrayApiKey != null && bintrayUser != null || bintrayRepo != null) {
+if (all.all { it != null }) {
   bintray {
     key = bintrayApiKey
     user = bintrayUser
@@ -101,15 +104,15 @@ if (bintrayApiKey != null && bintrayUser != null || bintrayRepo != null) {
       repo = bintrayRepo
       name = project.name
       publicDownloadNumbers = true
-      issueTrackerUrl = "https://github.com/Ricky12Awesome/json-schema-serialization/issues"
-      githubRepo = "Ricky12Awesome/json-schema-serialization"
-      vcsUrl = "https://github.com/Ricky12Awesome/json-schema-serialization.git"
-      websiteUrl = githubRepo
+      issueTrackerUrl = bintrayIssueTracker
+      githubRepo = bintrayGithubRepo
+      websiteUrl = bintrayWebsite
+      vcsUrl = bintrayVCS
 
       setLicenses("MIT")
 
       configure(version, closureOf<VersionConfig> {
-        name = project.version.toString()
+        name = "${project.version}"
         vcsTag = "v$name"
       })
     })
