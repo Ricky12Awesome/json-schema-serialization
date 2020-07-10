@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-  implementation("com.github.Ricky12Awesome", "json-schema-serialization-jvm", "0.3")
+  implementation("com.github.Ricky12Awesome", "json-schema-serialization-jvm", "0.4")
 }
 ```
 
@@ -35,7 +35,7 @@ repositories {
 
 dependencies {
   // Group "com.github.Ricky12Awesome" will not work, because jitpack treats this project as a multi-module project.
-  implementation("com.github.Ricky12Awesome.json-schema-serialization", "json-schema-serialization", "0.3")
+  implementation("com.github.Ricky12Awesome.json-schema-serialization", "json-schema-serialization", "0.4")
 }
 ```
 
@@ -152,7 +152,7 @@ val serializedSchema = json.stringifyToSchema(Test.serializer())
 - Json Schema Data Object instead of using `JsonObject`
 
 ### Json Schema DSL
-Json Schema DSL might look somthing like
+Json Schema DSL might look something like
 
 ```kotlin
 val schema = jsonSchema {
