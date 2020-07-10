@@ -14,6 +14,7 @@ in its current state you can't just depend on common code with no platform targe
 ### Dependency
 You would need [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) setup to use this dependency
 ##### Gradle / Gradle Kotlin DSL
+
 ```kotlin
 repositories {
   jcenter()  
@@ -24,7 +25,9 @@ dependencies {
   implementation("com.github.Ricky12Awesome", "json-schema-serialization-jvm", "0.3")
 }
 ```
+
 You can also get this on [Jitpack](https://jitpack.io/#Ricky12Awesome/json-schema-serialization/)
+
 ```kotlin
 repositories {
   maven("https://jitpack.io")
@@ -40,6 +43,7 @@ dependencies {
 Array Literals isn't supported in JS (yet), so you have to use `arrayOf` instead of `[]`
 
 From: [commonTest/src/Main.kt](https://github.com/Ricky12Awesome/json-schema-serialization/blob/master/commonTest/src/Main.kt)
+
 ```kotlin
 @Serializable
 enum class TestEnum {
@@ -71,6 +75,7 @@ data class SubTest(
 Will generate a schema using
 
 From: [jvmTest/src/Main.kt](https://github.com/Ricky12Awesome/json-schema-serialization/blob/master/jvmTest/src/Main.kt)
+
 ```kotlin
 val json = Json(JsonConfiguration.Stable.copy(prettyPrint = true, indent = "  "))
 val serializedSchema = json.stringifyToSchema(Test.serializer())
@@ -137,6 +142,38 @@ val serializedSchema = json.stringifyToSchema(Test.serializer())
         "required"
       ]
     }
+  }
+}
+```
+
+### Some Features I'm thinking about adding
+
+- Json Schema DSL
+- Json Schema Data Object instead of using `JsonObject`
+
+### Json Schema DSL
+Json Schema DSL might look somthing like
+
+```kotlin
+val schema = jsonSchema {
+  property(Test::text) { // Type-safe naming
+    description = "This is some text"
+    enum = listOf("A", "B", "C") // can only be used on strings
+  }
+  
+  property(Test::int) {
+    description = "I'm an int"
+    range = 0..33 // only on numbers
+  }
+  
+  property(Test::float) {
+    description = "I'm a float"
+    range = 0f..33f // or 0.0...33.0 for double
+  }
+  
+  property<String>("raw") { // Raw properties
+    description = "I'm a raw property"
+    enum = listOf("D", "E", "F") // because type is `String` you can use `enum`
   }
 }
 ```
