@@ -7,18 +7,7 @@ import me.github.ricky12awesome.jss.JsonSchema.StringEnum
 import me.github.ricky12awesome.jss.JsonSchema.IntRange
 import me.github.ricky12awesome.jss.JsonSchema.FloatRange
 import me.github.ricky12awesome.jss.JsonSchema.Pattern
-
-internal enum class JsonType(raw: String) {
-  ARRAY("array"),
-  NUMBER("number"),
-  STRING("string"),
-  BOOLEAN("boolean"),
-  OBJECT("object");
-
-  val json = JsonLiteral(raw)
-
-  override fun toString(): String = json.content
-}
+import me.github.ricky12awesome.jss.JsonType
 
 internal inline val SerialDescriptor.jsonLiteral inline get() = kind.jsonType.json
 

@@ -6,6 +6,21 @@ import kotlinx.serialization.json.JsonLiteral
 import kotlinx.serialization.json.JsonObject
 import me.github.ricky12awesome.jss.internal.jsonSchemaObject
 
+/**
+ * Represents the type of a json property
+ */
+enum class JsonType(raw: String) {
+  ARRAY("array"),
+  NUMBER("number"),
+  STRING("string"),
+  BOOLEAN("boolean"),
+  OBJECT("object");
+
+  val json = JsonLiteral(raw)
+
+  override fun toString(): String = json.content
+}
+
 @Target()
 annotation class JsonSchema {
   /**
