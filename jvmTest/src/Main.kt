@@ -14,7 +14,13 @@ internal fun main() {
   val schema = jsonSchema {
     property(Test::text) {
       description = "Testing"
+      default = "whatever"
       enum = listOf("Testing")
+    }
+
+    property<Int>("test") {
+      default = 3
+      enum = listOf(1, 1, 1)
     }
   }
 
