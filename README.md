@@ -4,7 +4,7 @@
 # json-schema-serialization (jss)
 Adds support for Json Schema using [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization)
 
-Only Support JVM (0.5+), once Kotlin/MPP improves I will use that again.
+Only Support JVM (0.5.0+), once Kotlin/MPP improves I will use that again.
 
 ### Dependency
 You would need [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) setup to use this dependency
@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-  implementation("com.github.Ricky12Awesome", "json-schema-serialization-jvm", "0.4")
+  implementation("com.github.Ricky12Awesome", "json-schema-serialization-jvm", "0.5.0")
 }
 ```
 
