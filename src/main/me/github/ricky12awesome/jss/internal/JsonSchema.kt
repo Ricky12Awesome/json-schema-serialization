@@ -9,8 +9,10 @@ import me.github.ricky12awesome.jss.JsonSchema.FloatRange
 import me.github.ricky12awesome.jss.JsonSchema.Pattern
 import me.github.ricky12awesome.jss.JsonType
 
+@PublishedApi
 internal inline val SerialDescriptor.jsonLiteral inline get() = kind.jsonType.json
 
+@PublishedApi
 internal val SerialKind.jsonType: JsonType
   get() = when (this) {
     StructureKind.LIST -> JsonType.ARRAY
@@ -25,6 +27,7 @@ internal inline fun <reified T> List<Annotation>.lastOfInstance(): T? {
   return filterIsInstance<T>().lastOrNull()
 }
 
+@PublishedApi
 internal fun SerialDescriptor.jsonSchemaObject(): JsonObject {
   val properties = mutableMapOf<String, JsonElement>()
   val required = mutableListOf<JsonLiteral>()
@@ -51,10 +54,12 @@ internal fun SerialDescriptor.jsonSchemaObject(): JsonObject {
   }
 }
 
+@PublishedApi
 internal fun SerialDescriptor.jsonSchemaArray(annotations: List<Annotation> = listOf()): JsonObject {
   return jsonSchemaElement(annotations)
 }
 
+@PublishedApi
 internal fun SerialDescriptor.jsonSchemaString(annotations: List<Annotation> = listOf()): JsonObject {
   return jsonSchemaElement(annotations) {
     val pattern = annotations.lastOfInstance<Pattern>()?.pattern ?: ""
@@ -70,6 +75,7 @@ internal fun SerialDescriptor.jsonSchemaString(annotations: List<Annotation> = l
   }
 }
 
+@PublishedApi
 internal fun SerialDescriptor.jsonSchemaNumber(annotations: List<Annotation> = listOf()): JsonObject {
   return jsonSchemaElement(annotations) {
     val value = when (kind) {
@@ -89,10 +95,12 @@ internal fun SerialDescriptor.jsonSchemaNumber(annotations: List<Annotation> = l
   }
 }
 
+@PublishedApi
 internal fun SerialDescriptor.jsonSchemaBoolean(annotations: List<Annotation> = listOf()): JsonObject {
   return jsonSchemaElement(annotations)
 }
 
+@PublishedApi
 internal fun SerialDescriptor.jsonSchemaFor(annotations: List<Annotation> = listOf()): JsonObject {
   return when (kind.jsonType) {
     JsonType.ARRAY -> jsonSchemaArray(annotations)
@@ -103,15 +111,16 @@ internal fun SerialDescriptor.jsonSchemaFor(annotations: List<Annotation> = list
   }
 }
 
+@PublishedApi
 internal fun JsonObjectBuilder.applyJsonSchemaDefaults(
   descriptor: SerialDescriptor,
   annotations: List<Annotation>
 ) {
   if (descriptor.isNullable) {
-    "if" to json {
+    "if" to buildJson {
       "type" to descriptor.jsonLiteral
     }
-    "else" to json {
+    "else" to buildJson {
       "type" to "null"
     }
   } else {
@@ -139,14 +148,14 @@ internal inline fun SerialDescriptor.jsonSchemaElement(
   annotations: List<Annotation>,
   extra: JsonObjectBuilder.() -> Unit = {}
 ): JsonObject {
-  return json {
+  return buildJson {
     applyJsonSchemaDefaults(this@jsonSchemaElement, annotations)
     extra()
   }
 }
 
 // Since built-in json dsl isn't inlined, i made my own
-internal inline fun json(builder: JsonObjectBuilder.() -> Unit): JsonObject {
+internal inline fun buildJson(builder: JsonObjectBuilder.() -> Unit): JsonObject {
   return JsonObject(JsonObjectBuilder().apply(builder).content)
 }
 

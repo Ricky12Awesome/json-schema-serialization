@@ -1,9 +1,11 @@
 import com.jfrog.bintray.gradle.BintrayExtension.PackageConfig
 import com.jfrog.bintray.gradle.BintrayExtension.VersionConfig
+import com.jfrog.bintray.gradle.tasks.BintrayUploadTask
+import org.gradle.api.publish.maven.internal.artifact.FileBasedMavenArtifact
 import org.jetbrains.kotlin.konan.properties.Properties
 
 plugins {
-  kotlin("multiplatform") version "1.3.72"
+  kotlin("jvm") version "1.3.72"
   kotlin("plugin.serialization") version "1.3.72"
   id("com.jfrog.bintray") version "1.8.5"
   `maven-publish`
@@ -11,64 +13,70 @@ plugins {
 
 repositories {
   mavenCentral()
+  jcenter()
 }
 
-kotlin {
-  jvm {
-    compilations.forEach {
-      it.compileKotlinTask.kotlinOptions.jvmTarget = "1.8"
+dependencies {
+  implementation(kotlin("stdlib"))
+  implementation(kotlin("reflect"))
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
+
+  testImplementation(kotlin("test-junit5"))
+
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.0.0")
+}
+
+kotlin.sourceSets["main"].kotlin.srcDir("src/main/")
+kotlin.sourceSets["test"].kotlin.srcDir("src/test/")
+
+sourceSets["main"].resources.srcDir("resources/main/")
+sourceSets["test"].resources.srcDir("resources/test/")
+
+val sourcesJar by tasks.creating(Jar::class) {
+  archiveClassifier.set("sources")
+
+  from(sourceSets["main"].allSource)
+
+  dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+}
+
+val javadocJar by tasks.creating(Jar::class) {
+  archiveClassifier.set("javadoc")
+
+  from(tasks["javadoc"])
+
+  dependsOn(JavaPlugin.JAVADOC_TASK_NAME)
+}
+
+tasks {
+  compileKotlin {
+    kotlinOptions {
+      freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
+      jvmTarget = "1.8"
     }
   }
 
-  js {
-    nodejs()
+  compileTestKotlin {
+    kotlinOptions {
+      jvmTarget = "1.8"
+    }
   }
 
-  sourceSets {
-    val commonMain by getting {
-      dependencies {
-        implementation(kotlin("stdlib-common"))
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:0.20.0")
-      }
-    }
+  test {
+    useJUnitPlatform()
+  }
+}
 
-    val commonTest by getting {
-      dependencies {
-        implementation(kotlin("test-common"))
-        implementation(kotlin("test-annotations-common"))
-      }
+publishing {
+  publications {
+    create<MavenPublication>("maven") {
+      artifact(sourcesJar)
+      artifact(javadocJar)
     }
+  }
 
-    val jvmMain by getting {
-      dependencies {
-        implementation(kotlin("stdlib"))
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
-      }
-    }
-
-    val jvmTest by getting {
-      dependencies {
-        implementation(kotlin("test-junit5"))
-      }
-    }
-
-    val jsMain by getting {
-      dependencies {
-        implementation(kotlin("stdlib-js"))
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:0.20.0")
-      }
-    }
-
-    val jsTest by getting {
-      dependencies {
-        implementation(kotlin("test-js"))
-      }
-    }
-
-    forEach {
-      it.kotlin.srcDir("./${it.name}/src/")
-      it.resources.srcDir("./${it.name}/resources/")
-    }
+  repositories {
+    mavenLocal()
   }
 }
 
@@ -94,11 +102,7 @@ if (all.all { it != null }) {
     user = bintrayUser
     publish = false
 
-    setPublications(*publishing.publications
-      .map { it.name }
-      .filter { it != "kotlinMultiplatform" }
-      .toTypedArray()
-    )
+    setPublications("maven")
 
     configure(pkg, closureOf<PackageConfig> {
       repo = bintrayRepo

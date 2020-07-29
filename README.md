@@ -4,12 +4,7 @@
 # json-schema-serialization (jss)
 Adds support for Json Schema using [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization)
 
-Supports JVM and JS
-
-I'm new to Kotlin Multiplatform, so I don't know a good way to support native, 
-this project doesn't use any platform-specific code, it's pure common code, 
-in its current state you can't just depend on common code with no platform target 
-(maybe you can, but I don't know how to do it).
+Only Support JVM (0.5+), once Kotlin/MPP improves I will use that again.
 
 ### Dependency
 You would need [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) setup to use this dependency
@@ -26,23 +21,7 @@ dependencies {
 }
 ```
 
-You can also get this on [Jitpack](https://jitpack.io/#Ricky12Awesome/json-schema-serialization/)
-
-```kotlin
-repositories {
-  maven("https://jitpack.io")
-}
-
-dependencies {
-  // Group "com.github.Ricky12Awesome" will not work, because jitpack treats this project as a multi-module project.
-  implementation("com.github.Ricky12Awesome.json-schema-serialization", "json-schema-serialization", "0.4")
-}
-```
-
 ### Usage
-Array Literals isn't supported in JS (yet), so you have to use `arrayOf` instead of `[]`
-
-From: [commonTest/src/Main.kt](https://github.com/Ricky12Awesome/json-schema-serialization/blob/master/commonTest/src/Main.kt)
 
 ```kotlin
 @Serializable
@@ -52,17 +31,17 @@ enum class TestEnum {
 
 @Serializable
 data class Test(
-  @JsonSchema.Description(arrayOf("This is text."))
+  @JsonSchema.Description(["This is text."])
   @JsonSchema.Pattern("[A-Z][a-z]+")
   val text: String = "Text",
   val list: List<String> = listOf("one", "two", "three"),
   val enum: TestEnum = TestEnum.A,
-  @JsonSchema.StringEnum(arrayOf("First", "Second", "Third"))
+  @JsonSchema.StringEnum(["First", "Second", "Third"])
   val specialEnum: String = "First",
   @JsonSchema.IntRange(0, 500) val int: Int = 33,
   @JsonSchema.FloatRange(0.0, 1.0) val double: Double = 0.33,
   val bool: Boolean = false,
-  @JsonSchema.Description(arrayOf("Sub Testing"))
+  @JsonSchema.Description(["Sub Testing"])
   val sub: SubTest? = null
 )
 
@@ -73,8 +52,6 @@ data class SubTest(
 )
 ```
 Will generate a schema using
-
-From: [jvmTest/src/Main.kt](https://github.com/Ricky12Awesome/json-schema-serialization/blob/master/jvmTest/src/Main.kt)
 
 ```kotlin
 val json = Json(JsonConfiguration.Stable.copy(prettyPrint = true, indent = "  "))

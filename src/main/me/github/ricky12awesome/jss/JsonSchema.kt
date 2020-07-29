@@ -2,9 +2,15 @@ package me.github.ricky12awesome.jss
 
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
 import kotlinx.serialization.json.JsonLiteral
 import kotlinx.serialization.json.JsonObject
 import me.github.ricky12awesome.jss.internal.jsonSchemaObject
+
+/**
+ * Global Json object for basic serialization. uses Stable Configuration.
+ */
+val globalJson by lazy { Json(JsonConfiguration.Stable) }
 
 /**
  * Represents the type of a json property
@@ -86,14 +92,14 @@ fun <T> Json.stringifyWithSchema(serializer: SerializationStrategy<T>, value: T,
 }
 
 /**
- * Stringifies the provided [descriptor] with [jsonSchema]
+ * Stringifies the provided [descriptor] with [buildJsonSchema]
  */
 fun Json.stringifyToSchema(descriptor: SerialDescriptor): String {
-  return stringify(JsonObject.serializer(), jsonSchema(descriptor))
+  return stringify(JsonObject.serializer(), buildJsonSchema(descriptor))
 }
 
 /**
- * Stringifies the provided [serializer] with [jsonSchema],
+ * Stringifies the provided [serializer] with [buildJsonSchema],
  * same as doing `json.stringifyToSchema(serializer.descriptor)`
  */
 fun Json.stringifyToSchema(serializer: SerializationStrategy<*>): String {
@@ -103,7 +109,7 @@ fun Json.stringifyToSchema(serializer: SerializationStrategy<*>): String {
 /**
  * Creates a Json Schema using the provided [descriptor]
  */
-fun jsonSchema(descriptor: SerialDescriptor): JsonObject {
+fun buildJsonSchema(descriptor: SerialDescriptor): JsonObject {
   val append = mapOf("\$schema" to JsonLiteral("http://json-schema.org/draft-07/schema"))
 
   return JsonObject(append + descriptor.jsonSchemaObject())
@@ -113,4 +119,4 @@ fun jsonSchema(descriptor: SerialDescriptor): JsonObject {
  * Creates a Json Schema using the provided [serializer],
  * same as doing `jsonSchema(serializer.descriptor)`
  */
-fun jsonSchema(serializer: SerializationStrategy<*>) = jsonSchema(serializer.descriptor)
+fun buildJsonSchema(serializer: SerializationStrategy<*>) = buildJsonSchema(serializer.descriptor)
