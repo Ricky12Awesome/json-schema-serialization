@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-  implementation("com.github.Ricky12Awesome:json-schema-serialization-jvm:0.5.1")
+  implementation("com.github.Ricky12Awesome:json-schema-serialization:0.5.1")
 }
 ```
 
