@@ -1,11 +1,11 @@
-package me.github.ricky12awesome.jss
+package com.github.ricky12awesome.jss
 
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import kotlinx.serialization.json.JsonLiteral
 import kotlinx.serialization.json.JsonObject
-import me.github.ricky12awesome.jss.internal.jsonSchemaObject
+import com.github.ricky12awesome.jss.internal.jsonSchemaObject
 
 /**
  * Global Json object for basic serialization. uses Stable Configuration.

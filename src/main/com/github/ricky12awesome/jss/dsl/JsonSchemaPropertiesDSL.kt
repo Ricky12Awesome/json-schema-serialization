@@ -1,12 +1,12 @@
 @file:Suppress("UNCHECKED_CAST")
 
-package me.github.ricky12awesome.jss.dsl
+package com.github.ricky12awesome.jss.dsl
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.*
-import me.github.ricky12awesome.jss.JsonType
-import me.github.ricky12awesome.jss.globalJson
+import com.github.ricky12awesome.jss.JsonType
+import com.github.ricky12awesome.jss.globalJson
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 

@@ -1,4 +1,4 @@
-package me.github.ricky12awesome.jss
+package com.github.ricky12awesome.jss
 
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement

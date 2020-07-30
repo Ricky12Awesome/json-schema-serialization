@@ -1,13 +1,13 @@
-package me.github.ricky12awesome.jss.internal
+package com.github.ricky12awesome.jss.internal
 
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
-import me.github.ricky12awesome.jss.JsonSchema.Description
-import me.github.ricky12awesome.jss.JsonSchema.StringEnum
-import me.github.ricky12awesome.jss.JsonSchema.IntRange
-import me.github.ricky12awesome.jss.JsonSchema.FloatRange
-import me.github.ricky12awesome.jss.JsonSchema.Pattern
-import me.github.ricky12awesome.jss.JsonType
+import com.github.ricky12awesome.jss.JsonSchema.Description
+import com.github.ricky12awesome.jss.JsonSchema.StringEnum
+import com.github.ricky12awesome.jss.JsonSchema.IntRange
+import com.github.ricky12awesome.jss.JsonSchema.FloatRange
+import com.github.ricky12awesome.jss.JsonSchema.Pattern
+import com.github.ricky12awesome.jss.JsonType
 
 @PublishedApi
 internal inline val SerialDescriptor.jsonLiteral inline get() = kind.jsonType.json

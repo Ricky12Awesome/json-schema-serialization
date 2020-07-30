@@ -1,4 +1,4 @@
-package me.github.ricky12awesome.jss.dsl
+package com.github.ricky12awesome.jss.dsl
 
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.KSerializer
@@ -7,9 +7,9 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.serializer
-import me.github.ricky12awesome.jss.JsonType
-import me.github.ricky12awesome.jss.buildJsonSchema
-import me.github.ricky12awesome.jss.merge
+import com.github.ricky12awesome.jss.JsonType
+import com.github.ricky12awesome.jss.buildJsonSchema
+import com.github.ricky12awesome.jss.merge
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 

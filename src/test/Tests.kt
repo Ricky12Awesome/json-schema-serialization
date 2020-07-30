@@ -1,12 +1,12 @@
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
-import me.github.ricky12awesome.jss.JsonSchema
-import me.github.ricky12awesome.jss.buildJsonSchema
-import me.github.ricky12awesome.jss.dsl.ExperimentalJsonSchemaDSL
-import me.github.ricky12awesome.jss.dsl.buildJsonSchemaOf
-import me.github.ricky12awesome.jss.dsl.minimum
-import me.github.ricky12awesome.jss.dsl.range
+import com.github.ricky12awesome.jss.JsonSchema
+import com.github.ricky12awesome.jss.buildJsonSchema
+import com.github.ricky12awesome.jss.dsl.ExperimentalJsonSchemaDSL
+import com.github.ricky12awesome.jss.dsl.buildJsonSchemaOf
+import com.github.ricky12awesome.jss.dsl.minimum
+import com.github.ricky12awesome.jss.dsl.range
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
