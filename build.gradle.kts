@@ -72,6 +72,8 @@ publishing {
     create<MavenPublication>("maven") {
       artifact(sourcesJar)
       artifact(javadocJar)
+
+      from(components["java"])
     }
   }
 
