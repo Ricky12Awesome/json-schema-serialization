@@ -17,18 +17,18 @@ open class JsonSchemaPropertyBuilder<T>(
 ) {
   val contents: MutableMap<String, JsonElement> = mutableMapOf("type" to type.json)
 
-  var description by JsonSchemaPropertyElement("", JsonElement::content, ::JsonPrimitive)
+  var description by JsonSchemaPropertyElement("", { (it as? JsonPrimitive)?.contentOrNull }, ::JsonPrimitive)
 
   var enum by JsonSchemaPropertyElement(
     default = listOf(),
-    get = { globalJson.fromJson(ListSerializer(serializer), it) },
-    set = { globalJson.toJson(ListSerializer(serializer), it) }
+    get = { globalJson.decodeFromJsonElement(ListSerializer(serializer), it) },
+    set = { globalJson.encodeToJsonElement(ListSerializer(serializer), it) }
   )
 
   var default by JsonSchemaPropertyElement(
     default = null,
-    get = { globalJson.fromJson(serializer, it) },
-    set = { it?.let { globalJson.toJson(serializer, it) } ?: JsonNull }
+    get = { globalJson.decodeFromJsonElement(serializer, it) },
+    set = { it?.let { globalJson.encodeToJsonElement(serializer, it) } ?: JsonNull }
   )
 
   open fun build() = JsonObject(contents)
@@ -40,14 +40,14 @@ internal class JsonSchemaPropertyElement<T>(
   private val get: (JsonElement) -> T,
   private val set: (T) -> JsonElement
 ) : ReadWriteProperty<JsonSchemaPropertyBuilder<*>, T> {
-  override fun getValue(thisRef: JsonSchemaPropertyBuilder<*>, property: KProperty<*>): T {
+  override operator fun getValue(thisRef: JsonSchemaPropertyBuilder<*>, property: KProperty<*>): T {
     return thisRef.contents[property.name]?.let(get) ?: default
   }
 
-  override fun setValue(thisRef: JsonSchemaPropertyBuilder<*>, property: KProperty<*>, value: T) {
+  override operator fun setValue(thisRef: JsonSchemaPropertyBuilder<*>, property: KProperty<*>, value: T) {
     val element = set(value)
 
-    if (!element.isNull ||
+    if (element != JsonNull ||
       (element is JsonArray && element.isNotEmpty()) ||
       (element is JsonObject && element.isNotEmpty())
     ) {
@@ -61,7 +61,7 @@ var <T> JsonSchemaPropertyBuilder<T>.minimum: T?
     where T : Comparable<T>, T : Number
     by JsonSchemaPropertyElement(
       default = null,
-      get = { it.doubleOrNull as T? },
+      get = { (it as? JsonPrimitive)?.doubleOrNull as T? },
       set = ::JsonPrimitive
     )
 
@@ -70,7 +70,7 @@ var <T> JsonSchemaPropertyBuilder<T>.maximum: T?
     where T : Comparable<T>, T : Number
     by JsonSchemaPropertyElement(
       default = null,
-      get = { it.doubleOrNull as T? },
+      get = { (it as? JsonPrimitive)?.doubleOrNull as T? },
       set = ::JsonPrimitive
     )
 

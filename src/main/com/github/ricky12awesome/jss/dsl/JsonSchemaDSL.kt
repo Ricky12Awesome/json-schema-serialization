@@ -1,6 +1,5 @@
 package com.github.ricky12awesome.jss.dsl
 
-import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -45,7 +44,7 @@ class JsonSchemaBuilder<T>(serializer: KSerializer<T>) : JsonSchemaPropertyBuild
   private val required = mutableSetOf<JsonElement>()
 
   init {
-    baseSchema.getObjectOrNull("properties")?.let {
+    (baseSchema.get("properties") as? JsonObject )?.let {
       properties += it
     }
 
@@ -80,7 +79,6 @@ class JsonSchemaBuilder<T>(serializer: KSerializer<T>) : JsonSchemaPropertyBuild
     rawProperty(name, isRequired, JsonSchemaPropertyBuilder(T::class.jsonType, serializer).apply(builder).build())
   }
 
-  @OptIn(ImplicitReflectionSerializer::class)
   inline fun <reified T> property(
     name: String,
     isRequired: Boolean? = null,
@@ -91,7 +89,6 @@ class JsonSchemaBuilder<T>(serializer: KSerializer<T>) : JsonSchemaPropertyBuild
     )
   }
 
-  @OptIn(ImplicitReflectionSerializer::class)
   inline fun <reified T> property(
     property: KProperty<T>,
     isRequired: Boolean? = null,
@@ -109,7 +106,6 @@ class JsonSchemaBuilder<T>(serializer: KSerializer<T>) : JsonSchemaPropertyBuild
     rawProperty(name, isRequired, buildJsonSchema(serializer, builder))
   }
 
-  @OptIn(ImplicitReflectionSerializer::class)
   inline fun <reified T> propertyObject(
     name: String,
     isRequired: Boolean? = null,
@@ -147,7 +143,6 @@ inline fun <T> buildJsonSchema(serializer: KSerializer<T>, build: JsonSchemaBuil
   return JsonSchemaBuilder(serializer).apply(build).build()
 }
 
-@OptIn(ImplicitReflectionSerializer::class)
 @ExperimentalJsonSchemaDSL
 inline fun <reified T> buildJsonSchemaOf(build: JsonSchemaBuilder<T>.() -> Unit): JsonObject {
   return JsonSchemaBuilder(serializer<T>()).apply(build).build()

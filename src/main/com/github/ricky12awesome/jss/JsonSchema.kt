@@ -2,15 +2,15 @@ package com.github.ricky12awesome.jss
 
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
-import kotlinx.serialization.json.JsonLiteral
 import kotlinx.serialization.json.JsonObject
 import com.github.ricky12awesome.jss.internal.jsonSchemaObject
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * Global Json object for basic serialization. uses Stable Configuration.
  */
-val globalJson by lazy { Json(JsonConfiguration.Stable) }
+val globalJson by lazy { Json{encodeDefaults = true} }
 
 /**
  * Represents the type of a json property
@@ -22,7 +22,7 @@ enum class JsonType(raw: String) {
   BOOLEAN("boolean"),
   OBJECT("object");
 
-  val json = JsonLiteral(raw)
+  val json = JsonPrimitive(raw)
 
   override fun toString(): String = json.content
 }
@@ -85,17 +85,17 @@ annotation class JsonSchema {
  * This is so when you serialize your [value] it will use [url] as it's Json Schema for code completion.
  */
 fun <T> Json.stringifyWithSchema(serializer: SerializationStrategy<T>, value: T, url: String): String {
-  val json = toJson(serializer, value) as JsonObject
-  val append = mapOf("\$schema" to JsonLiteral(url))
+  val json = encodeToJsonElement(serializer, value) as JsonObject
+  val append = mapOf("\$schema" to JsonPrimitive(url))
 
-  return stringify(JsonObject.serializer(), JsonObject(append + json))
+  return encodeToString(JsonObject.serializer(), JsonObject(append + json))
 }
 
 /**
  * Stringifies the provided [descriptor] with [buildJsonSchema]
  */
 fun Json.stringifyToSchema(descriptor: SerialDescriptor): String {
-  return stringify(JsonObject.serializer(), buildJsonSchema(descriptor))
+  return encodeToString(JsonObject.serializer(), buildJsonSchema(descriptor))
 }
 
 /**
@@ -110,7 +110,7 @@ fun Json.stringifyToSchema(serializer: SerializationStrategy<*>): String {
  * Creates a Json Schema using the provided [descriptor]
  */
 fun buildJsonSchema(descriptor: SerialDescriptor): JsonObject {
-  val append = mapOf("\$schema" to JsonLiteral("http://json-schema.org/draft-07/schema"))
+  val append = mapOf("\$schema" to JsonPrimitive("http://json-schema.org/draft-07/schema"))
 
   return JsonObject(append + descriptor.jsonSchemaObject())
 }

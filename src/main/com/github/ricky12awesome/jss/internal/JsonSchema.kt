@@ -1,3 +1,4 @@
+@file:OptIn(ExperimentalSerializationApi::class)
 package com.github.ricky12awesome.jss.internal
 
 import kotlinx.serialization.*
@@ -8,6 +9,7 @@ import com.github.ricky12awesome.jss.JsonSchema.IntRange
 import com.github.ricky12awesome.jss.JsonSchema.FloatRange
 import com.github.ricky12awesome.jss.JsonSchema.Pattern
 import com.github.ricky12awesome.jss.JsonType
+import kotlinx.serialization.descriptors.*
 
 @PublishedApi
 internal inline val SerialDescriptor.jsonLiteral inline get() = kind.jsonType.json
@@ -18,7 +20,7 @@ internal val SerialKind.jsonType: JsonType
     StructureKind.LIST -> JsonType.ARRAY
     PrimitiveKind.BYTE, PrimitiveKind.SHORT, PrimitiveKind.INT, PrimitiveKind.LONG,
     PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE -> JsonType.NUMBER
-    PrimitiveKind.STRING, PrimitiveKind.CHAR, UnionKind.ENUM_KIND -> JsonType.STRING
+    PrimitiveKind.STRING, PrimitiveKind.CHAR, SerialKind.ENUM -> JsonType.STRING
     PrimitiveKind.BOOLEAN -> JsonType.BOOLEAN
     else -> JsonType.OBJECT
   }
@@ -30,16 +32,16 @@ internal inline fun <reified T> List<Annotation>.lastOfInstance(): T? {
 @PublishedApi
 internal fun SerialDescriptor.jsonSchemaObject(): JsonObject {
   val properties = mutableMapOf<String, JsonElement>()
-  val required = mutableListOf<JsonLiteral>()
+  val required = mutableListOf<JsonPrimitive>()
 
-  elementDescriptors().forEachIndexed { index, child ->
+  elementDescriptors.forEachIndexed { index, child ->
     val name = getElementName(index)
     val annotations = getElementAnnotations(index)
 
     properties[name] = child.jsonSchemaFor(annotations)
 
     if (!isElementOptional(index)) {
-      required += JsonLiteral(name)
+      required += JsonPrimitive(name)
     }
   }
 
@@ -127,8 +129,8 @@ internal fun JsonObjectBuilder.applyJsonSchemaDefaults(
     "type" to descriptor.jsonLiteral
   }
 
-  if (descriptor.kind == UnionKind.ENUM_KIND) {
-    "enum" to descriptor.elementNames()
+  if (descriptor.kind == SerialKind.ENUM) {
+    "enum" to descriptor.elementNames.toList()
   }
 
   if (annotations.isNotEmpty()) {

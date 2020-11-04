@@ -1,12 +1,13 @@
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
 import com.github.ricky12awesome.jss.JsonSchema
 import com.github.ricky12awesome.jss.buildJsonSchema
 import com.github.ricky12awesome.jss.dsl.ExperimentalJsonSchemaDSL
 import com.github.ricky12awesome.jss.dsl.buildJsonSchemaOf
 import com.github.ricky12awesome.jss.dsl.minimum
 import com.github.ricky12awesome.jss.dsl.range
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -34,8 +35,12 @@ data class TestDataNested(
   val rangeLong: Long = 20L
 )
 
+@ExperimentalSerializationApi
 class Tests {
-  val json = Json(JsonConfiguration.Stable.copy(prettyPrint = true, indent = "  "))
+  val json = Json{
+    prettyPrint = true
+    prettyPrintIndent = "  "
+  }
 
   @Test
   fun `annotated schema`() {
@@ -108,7 +113,7 @@ class Tests {
 
 //    println(json.stringify(JsonObject.serializer(), schema))
 
-    assertEquals(schema, schemaAsText.trimIndent().let(json::parseJson))
+    assertEquals(schemaAsText.trimIndent().let(json::parseToJsonElement), schema)
   }
 
   @Test
@@ -227,6 +232,6 @@ class Tests {
 
 //    println(json.stringify(JsonObject.serializer(), schema))
 
-    assertEquals(schema, schemaAsText.trimIndent().let(json::parseJson))
+    assertEquals(schemaAsText.trimIndent().let(json::parseToJsonElement), schema)
   }
 }
