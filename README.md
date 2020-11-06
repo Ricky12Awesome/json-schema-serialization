@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-  implementation("com.github.Ricky12Awesome:json-schema-serialization:0.6.0")
+  implementation("com.github.Ricky12Awesome:json-schema-serialization:0.6.1")
 }
 ```
 
@@ -26,31 +26,38 @@ dependencies {
 
 ```kotlin
 @Serializable
-enum class TestEnum {
-  A, B, C
-}
+enum class TestEnum { A, B, C }
 
 @Serializable
-data class Test(
-  @JsonSchema.Description(["This is text."])
-  @JsonSchema.Pattern("[A-Z][a-z]+")
-  val text: String = "Text",
-  val list: List<String> = listOf("one", "two", "three"),
-  val enum: TestEnum = TestEnum.A,
+data class TestData(
+  @JsonSchema.Description(["Line 1", "Line 2"])
+  val text: String,
+  val enum: TestEnum,
   @JsonSchema.StringEnum(["First", "Second", "Third"])
-  val specialEnum: String = "First",
-  @JsonSchema.IntRange(0, 500) val int: Int = 33,
-  @JsonSchema.FloatRange(0.0, 1.0) val double: Double = 0.33,
-  val bool: Boolean = false,
-  @JsonSchema.Description(["Sub Testing"])
-  val sub: SubTest? = null
+  val specialEnum: String,
+  @JsonSchema.IntRange(0, 100)
+  val rangeInt: Int = 30,
+  @JsonSchema.FloatRange(0.0, 1.0)
+  val rangeDouble: Double = 0.5,
+  val nested: TestDataNested? = null,
+  val sealed: TestSealed? = null
 )
 
 @Serializable
-data class SubTest(
-  val required: String,
-  val list: List<Double> = listOf(1.0, 2.0, 3.0)
+data class TestDataNested(
+  val list: List<String>,
+  val rangeFloat: Float = 20f,
+  val rangeLong: Long = 20L
 )
+
+@Serializable
+sealed class TestSealed {
+  @Serializable
+  data class A(val text: String) : TestSealed()
+
+  @Serializable
+  data class B(val number: Double) : TestSealed()
+}
 ```
 Will generate a schema using
 
@@ -64,11 +71,7 @@ globalJson.encodeToSchema(Test.serializer())
   "properties": {
     "text": {
       "type": "string",
-      "description": "This is text.",
-      "pattern": "[A-Z][a-z]+"
-    },
-    "list": {
-      "type": "array"
+      "description": "Line 1\nLine 2"
     },
     "enum": {
       "type": "string",
@@ -86,20 +89,17 @@ globalJson.encodeToSchema(Test.serializer())
         "Third"
       ]
     },
-    "int": {
+    "rangeInt": {
       "type": "number",
       "minimum": 0,
-      "maximum": 500
+      "maximum": 100
     },
-    "double": {
+    "rangeDouble": {
       "type": "number",
       "minimum": 0.0,
       "maximum": 1.0
     },
-    "bool": {
-      "type": "boolean"
-    },
-    "sub": {
+    "nested": {
       "if": {
         "type": "object"
       },
@@ -107,18 +107,73 @@ globalJson.encodeToSchema(Test.serializer())
         "type": "null"
       },
       "properties": {
-        "required": {
-          "type": "string"
-        },
         "list": {
           "type": "array"
+        },
+        "rangeFloat": {
+          "type": "number"
+        },
+        "rangeLong": {
+          "type": "number"
         }
       },
       "required": [
-        "required"
+        "list"
+      ]
+    },
+    "sealed": {
+      "if": {
+        "type": "object"
+      },
+      "else": {
+        "type": "null"
+      },
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "TestSealed.A",
+            "TestSealed.B"
+          ]
+        }
+      },
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "TestSealed.A"
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "TestSealed.B"
+            },
+            "number": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "number"
+          ]
+        }
       ]
     }
-  }
+  },
+  "required": [
+    "text",
+    "enum",
+    "specialEnum"
+  ]
 }
 ```
 

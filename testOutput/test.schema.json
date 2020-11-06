@@ -63,15 +63,42 @@
       },
       "properties": {
         "type": {
-          "type": "string"
-        },
-        "value": {
-          "type": "object"
+          "type": "string",
+          "enum": [
+            "TestSealed.A",
+            "TestSealed.B"
+          ]
         }
       },
-      "required": [
-        "type",
-        "value"
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "TestSealed.A"
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "TestSealed.B"
+            },
+            "number": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "number"
+          ]
+        }
       ]
     }
   },

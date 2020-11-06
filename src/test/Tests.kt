@@ -1,10 +1,8 @@
 import com.github.ricky12awesome.jss.JsonSchema
 import com.github.ricky12awesome.jss.buildJsonSchema
+import com.github.ricky12awesome.jss.encodeToSchema
 import com.github.ricky12awesome.jss.globalJson
-import com.github.ricky12awesome.jss.stringifyToSchema
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.elementDescriptors
-import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -35,8 +33,11 @@ data class TestDataNested(
 
 @Serializable
 sealed class TestSealed {
-  data class A(val text: String)
-  data class B(val number: String)
+  @Serializable
+  data class A(val text: String) : TestSealed()
+
+  @Serializable
+  data class B(val number: Double) : TestSealed()
 }
 
 class Tests {
@@ -111,15 +112,42 @@ class Tests {
             },
             "properties": {
               "type": {
-                "type": "string"
-              },
-              "value": {
-                "type": "object"
+                "type": "string",
+                "enum": [
+                  "TestSealed.A",
+                  "TestSealed.B"
+                ]
               }
             },
-            "required": [
-              "type",
-              "value"
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "TestSealed.A"
+                  },
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "text"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "TestSealed.B"
+                  },
+                  "number": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "number"
+                ]
+              }
             ]
           }
         },
@@ -133,6 +161,11 @@ class Tests {
 
 //    println(json.encodeToString(JsonObject.serializer(), schema))
 
-    assertEquals(schema, schemaAsText.trimIndent().let(json::parseToJsonElement))
+    assertEquals(schema, schemaAsText.let(json::parseToJsonElement))
+  }
+
+  @Test
+  fun `test sealed`() {
+    println(json.encodeToSchema(TestSealed.serializer()))
   }
 }

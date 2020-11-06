@@ -13,9 +13,7 @@
   "bool": false,
   "sub": null,
   "sealed": {
-    "type": "A",
-    "value": {
-
-    }
+    "type": "TestSealed.B",
+    "number": 33
   }
 }
