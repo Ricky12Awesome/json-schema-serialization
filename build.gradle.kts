@@ -5,8 +5,8 @@ import org.gradle.api.publish.maven.internal.artifact.FileBasedMavenArtifact
 import org.jetbrains.kotlin.konan.properties.Properties
 
 plugins {
-  kotlin("jvm") version "1.3.72"
-  kotlin("plugin.serialization") version "1.3.72"
+  kotlin("jvm") version "1.4.10"
+  kotlin("plugin.serialization") version "1.4.10"
   id("com.jfrog.bintray") version "1.8.5"
   `maven-publish`
 }
@@ -19,7 +19,9 @@ repositories {
 dependencies {
   implementation(kotlin("stdlib"))
   implementation(kotlin("reflect"))
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
+
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.1")
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
 
   testImplementation(kotlin("test-junit5"))
 

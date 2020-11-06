@@ -1,16 +1,23 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package com.github.ricky12awesome.jss.internal
 
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
 import com.github.ricky12awesome.jss.JsonSchema.Description
 import com.github.ricky12awesome.jss.JsonSchema.StringEnum
 import com.github.ricky12awesome.jss.JsonSchema.IntRange
 import com.github.ricky12awesome.jss.JsonSchema.FloatRange
 import com.github.ricky12awesome.jss.JsonSchema.Pattern
 import com.github.ricky12awesome.jss.JsonType
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 @PublishedApi
-internal inline val SerialDescriptor.jsonLiteral inline get() = kind.jsonType.json
+internal inline val SerialDescriptor.jsonLiteral
+  inline get() = kind.jsonType.json
 
 @PublishedApi
 internal val SerialKind.jsonType: JsonType
@@ -18,7 +25,7 @@ internal val SerialKind.jsonType: JsonType
     StructureKind.LIST -> JsonType.ARRAY
     PrimitiveKind.BYTE, PrimitiveKind.SHORT, PrimitiveKind.INT, PrimitiveKind.LONG,
     PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE -> JsonType.NUMBER
-    PrimitiveKind.STRING, PrimitiveKind.CHAR, UnionKind.ENUM_KIND -> JsonType.STRING
+    PrimitiveKind.STRING, PrimitiveKind.CHAR, SerialKind.ENUM -> JsonType.STRING
     PrimitiveKind.BOOLEAN -> JsonType.BOOLEAN
     else -> JsonType.OBJECT
   }
@@ -30,26 +37,26 @@ internal inline fun <reified T> List<Annotation>.lastOfInstance(): T? {
 @PublishedApi
 internal fun SerialDescriptor.jsonSchemaObject(): JsonObject {
   val properties = mutableMapOf<String, JsonElement>()
-  val required = mutableListOf<JsonLiteral>()
+  val required = mutableListOf<JsonPrimitive>()
 
-  elementDescriptors().forEachIndexed { index, child ->
+  elementDescriptors.forEachIndexed { index, child ->
     val name = getElementName(index)
     val annotations = getElementAnnotations(index)
 
     properties[name] = child.jsonSchemaFor(annotations)
 
     if (!isElementOptional(index)) {
-      required += JsonLiteral(name)
+      required += JsonPrimitive(name)
     }
   }
 
   return jsonSchemaElement(annotations) {
     if (properties.isNotEmpty()) {
-      "properties" to JsonObject(properties)
+      this["properties"] = JsonObject(properties)
     }
 
     if (required.isNotEmpty()) {
-      "required" to JsonArray(required)
+      this["required"] = JsonArray(required)
     }
   }
 }
@@ -66,11 +73,11 @@ internal fun SerialDescriptor.jsonSchemaString(annotations: List<Annotation> = l
     val enum = annotations.lastOfInstance<StringEnum>()?.values ?: arrayOf()
 
     if (pattern.isNotEmpty()) {
-      "pattern" to pattern
+      this["pattern"] = pattern
     }
 
     if (enum.isNotEmpty()) {
-      "enum" to enum.toList()
+      this["enum"] = enum.toList()
     }
   }
 }
@@ -89,8 +96,8 @@ internal fun SerialDescriptor.jsonSchemaNumber(annotations: List<Annotation> = l
     }
 
     value?.let { (min, max) ->
-      "minimum" to min
-      "maximum" to max
+      this["minimum"] = min
+      this["maximum"] = max
     }
   }
 }
@@ -117,18 +124,18 @@ internal fun JsonObjectBuilder.applyJsonSchemaDefaults(
   annotations: List<Annotation>
 ) {
   if (descriptor.isNullable) {
-    "if" to buildJson {
-      "type" to descriptor.jsonLiteral
+    this["if"] = buildJson {
+      this["type"] = descriptor.jsonLiteral
     }
-    "else" to buildJson {
-      "type" to "null"
+    this["else"] = buildJson {
+      this["type"] = "null"
     }
   } else {
-    "type" to descriptor.jsonLiteral
+    this["type"] = descriptor.jsonLiteral
   }
 
-  if (descriptor.kind == UnionKind.ENUM_KIND) {
-    "enum" to descriptor.elementNames()
+  if (descriptor.kind == SerialKind.ENUM) {
+    this["enum"] = descriptor.elementNames
   }
 
   if (annotations.isNotEmpty()) {
@@ -139,7 +146,7 @@ internal fun JsonObjectBuilder.applyJsonSchemaDefaults(
       }
 
     if (description.isNotEmpty()) {
-      "description" to description
+      this["description"] = description
     }
   }
 }
@@ -162,9 +169,10 @@ internal inline fun buildJson(builder: JsonObjectBuilder.() -> Unit): JsonObject
 // Since built-in one is internal i have to do this
 internal class JsonObjectBuilder {
   internal val content: MutableMap<String, JsonElement> = linkedMapOf()
-  infix fun String.to(value: JsonElement) = content.set(this, value)
-  infix fun String.to(value: List<String>) = to(JsonArray(value.map(::JsonPrimitive)))
-  infix fun String.to(value: String?) = to(JsonPrimitive(value))
-  infix fun String.to(value: Number?) = to(JsonPrimitive(value))
+
+  operator fun set(key: String, value: JsonElement) = content.set(key, value)
+  operator fun set(key: String, value: Iterable<String>) = set(key, JsonArray(value.map(::JsonPrimitive)))
+  operator fun set(key: String, value: String?) = set(key, JsonPrimitive(value))
+  operator fun set(key: String, value: Number?) = set(key, JsonPrimitive(value))
 }
 

@@ -4,11 +4,7 @@
   "properties": {
     "text": {
       "type": "string",
-      "description": "This is text.",
-      "pattern": "[A-Z][a-z]+"
-    },
-    "list": {
-      "type": "array"
+      "description": "Line 1\nLine 2"
     },
     "enum": {
       "type": "string",
@@ -26,20 +22,17 @@
         "Third"
       ]
     },
-    "int": {
+    "rangeInt": {
       "type": "number",
       "minimum": 0,
-      "maximum": 500
+      "maximum": 100
     },
-    "double": {
+    "rangeDouble": {
       "type": "number",
       "minimum": 0.0,
       "maximum": 1.0
     },
-    "bool": {
-      "type": "boolean"
-    },
-    "sub": {
+    "nested": {
       "if": {
         "type": "object"
       },
@@ -47,16 +40,44 @@
         "type": "null"
       },
       "properties": {
-        "required": {
-          "type": "string"
-        },
         "list": {
           "type": "array"
+        },
+        "rangeFloat": {
+          "type": "number"
+        },
+        "rangeLong": {
+          "type": "number"
         }
       },
       "required": [
-        "required"
+        "list"
+      ]
+    },
+    "sealed": {
+      "if": {
+        "type": "object"
+      },
+      "else": {
+        "type": "null"
+      },
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "type",
+        "value"
       ]
     }
-  }
+  },
+  "required": [
+    "text",
+    "enum",
+    "specialEnum"
+  ]
 }

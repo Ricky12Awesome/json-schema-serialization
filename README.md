@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-  implementation("com.github.Ricky12Awesome:json-schema-serialization:0.5.2")
+  implementation("com.github.Ricky12Awesome:json-schema-serialization:0.6.0")
 }
 ```
 
@@ -55,10 +55,8 @@ data class SubTest(
 Will generate a schema using
 
 ```kotlin
-val json = Json(JsonConfiguration.Stable.copy(prettyPrint = true, indent = "  "))
-val serializedSchema = json.stringifyToSchema(Test.serializer())
+globalJson.encodeToSchema(Test.serializer())
 ```
-`serializedSchema`:
 ```json
 {
   "$schema": "http://json-schema.org/draft-07/schema",
@@ -151,7 +149,7 @@ val schema = jsonSchema {
   
   property<String>("raw") { // Raw properties
     description = "I'm a raw property"
-    enum = listOf("D", "E", "F") // because type is `String` you can use `enum`
+    enum = listOf("D", "E", "F")
   }
 }
 ```

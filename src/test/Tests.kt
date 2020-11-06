@@ -1,12 +1,10 @@
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
 import com.github.ricky12awesome.jss.JsonSchema
 import com.github.ricky12awesome.jss.buildJsonSchema
-import com.github.ricky12awesome.jss.dsl.ExperimentalJsonSchemaDSL
-import com.github.ricky12awesome.jss.dsl.buildJsonSchemaOf
-import com.github.ricky12awesome.jss.dsl.minimum
-import com.github.ricky12awesome.jss.dsl.range
+import com.github.ricky12awesome.jss.globalJson
+import com.github.ricky12awesome.jss.stringifyToSchema
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.elementDescriptors
+import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -24,7 +22,8 @@ data class TestData(
   val rangeInt: Int = 30,
   @JsonSchema.FloatRange(0.0, 1.0)
   val rangeDouble: Double = 0.5,
-  val nested: TestDataNested? = null
+  val nested: TestDataNested? = null,
+  val sealed: TestSealed? = null
 )
 
 @Serializable
@@ -34,8 +33,14 @@ data class TestDataNested(
   val rangeLong: Long = 20L
 )
 
+@Serializable
+sealed class TestSealed {
+  data class A(val text: String)
+  data class B(val number: String)
+}
+
 class Tests {
-  val json = Json(JsonConfiguration.Stable.copy(prettyPrint = true, indent = "  "))
+  val json = globalJson
 
   @Test
   fun `annotated schema`() {
@@ -96,94 +101,8 @@ class Tests {
             "required": [
               "list"
             ]
-          }
-        },
-        "required": [
-          "text",
-          "enum",
-          "specialEnum"
-        ]
-      }
-    """
-
-//    println(json.stringify(JsonObject.serializer(), schema))
-
-    assertEquals(schema, schemaAsText.trimIndent().let(json::parseJson))
-  }
-
-  @Test
-  @ExperimentalJsonSchemaDSL
-  fun `dsl schema`() {
-    val schema = buildJsonSchemaOf<TestData> {
-      property(TestData::text) {
-        default = "Default"
-      }
-
-      property(TestData::enum) {
-        description = "Test Enum"
-        default = TestEnum.A
-      }
-
-      property(TestData::rangeInt) {
-        range = 0..100738
-      }
-
-      property(TestData::rangeDouble) {
-        range = 0.0..65.423543
-      }
-
-      // atm, nullable properties don't work, so you just have to do this
-      propertyObject("nested", TestDataNested.serializer()) {
-        description = "Nested Data Property"
-        default = TestDataNested(list = listOf("Test"))
-
-        property(TestDataNested::rangeLong) {
-          minimum = 1L
-        }
-
-        property(TestDataNested::rangeFloat) {
-          minimum = 1F
-        }
-      }
-    }
-    val schemaAsText = """
-      {
-        "type": "object",
-        "properties": {
-          "text": {
-            "type": "string",
-            "description": "Line 1\nLine 2",
-            "default": "Default"
           },
-          "enum": {
-            "type": "object",
-            "enum": [
-              "A",
-              "B",
-              "C"
-            ],
-            "description": "Test Enum",
-            "default": "A"
-          },
-          "specialEnum": {
-            "type": "string",
-            "enum": [
-              "First",
-              "Second",
-              "Third"
-            ]
-          },
-          "rangeInt": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100738
-          },
-          "rangeDouble": {
-            "type": "number",
-            "minimum": 0.0,
-            "maximum": 65.423543
-          },
-          "nested": {
+          "sealed": {
             "if": {
               "type": "object"
             },
@@ -191,30 +110,17 @@ class Tests {
               "type": "null"
             },
             "properties": {
-              "list": {
-                "type": "array"
+              "type": {
+                "type": "string"
               },
-              "rangeFloat": {
-                "type": "number",
-                "minimum": 1.0
-              },
-              "rangeLong": {
-                "type": "number",
-                "minimum": 1
+              "value": {
+                "type": "object"
               }
             },
             "required": [
-              "list"
-            ],
-            "type": "object",
-            "description": "Nested Data Property",
-            "default": {
-              "list": [
-                "Test"
-              ],
-              "rangeFloat": 20.0,
-              "rangeLong": 20
-            }
+              "type",
+              "value"
+            ]
           }
         },
         "required": [
@@ -225,8 +131,8 @@ class Tests {
       }
     """
 
-//    println(json.stringify(JsonObject.serializer(), schema))
+//    println(json.encodeToString(JsonObject.serializer(), schema))
 
-    assertEquals(schema, schemaAsText.trimIndent().let(json::parseJson))
+    assertEquals(schema, schemaAsText.trimIndent().let(json::parseToJsonElement))
   }
 }

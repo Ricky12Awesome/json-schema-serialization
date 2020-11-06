@@ -11,5 +11,11 @@
   "int": 33,
   "double": 0.33,
   "bool": false,
-  "sub": null
+  "sub": null,
+  "sealed": {
+    "type": "A",
+    "value": {
+
+    }
+  }
 }

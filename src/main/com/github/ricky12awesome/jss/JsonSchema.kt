@@ -1,16 +1,24 @@
+@file:OptIn(ExperimentalSerializationApi::class)
 package com.github.ricky12awesome.jss
 
 import kotlinx.serialization.*
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
-import kotlinx.serialization.json.JsonLiteral
-import kotlinx.serialization.json.JsonObject
 import com.github.ricky12awesome.jss.internal.jsonSchemaObject
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.json.*
 
 /**
  * Global Json object for basic serialization. uses Stable Configuration.
  */
-val globalJson by lazy { Json(JsonConfiguration.Stable) }
+val globalJson by lazy {
+  Json {
+    prettyPrintIndent = "  "
+    prettyPrint = true
+    ignoreUnknownKeys = true
+    isLenient = true
+    coerceInputValues = true
+    encodeDefaults = true
+  }
+}
 
 /**
  * Represents the type of a json property
@@ -22,7 +30,7 @@ enum class JsonType(raw: String) {
   BOOLEAN("boolean"),
   OBJECT("object");
 
-  val json = JsonLiteral(raw)
+  val json = JsonPrimitive(raw)
 
   override fun toString(): String = json.content
 }
@@ -78,39 +86,63 @@ annotation class JsonSchema {
   annotation class Pattern(val pattern: String)
 }
 
+
+@Deprecated(
+  message = "Use encodeWithSchema instead",
+  replaceWith = ReplaceWith("this.encodeWithSchema(serializer, value, url)"),
+  level = DeprecationLevel.ERROR
+)
+fun <T> Json.stringifyWithSchema(serializer: SerializationStrategy<T>, value: T, url: String): String {
+  return encodeWithSchema(serializer,value, url)
+}
+
 /**
  * Adds a `$schema` property with the provided [url] that points to the Json Schema,
  * this can be a File location or a HTTP URL
  *
  * This is so when you serialize your [value] it will use [url] as it's Json Schema for code completion.
  */
-fun <T> Json.stringifyWithSchema(serializer: SerializationStrategy<T>, value: T, url: String): String {
-  val json = toJson(serializer, value) as JsonObject
-  val append = mapOf("\$schema" to JsonLiteral(url))
+fun <T> Json.encodeWithSchema(serializer: SerializationStrategy<T>, value: T, url: String): String {
+  val json = encodeToJsonElement(serializer, value) as JsonObject
+  val append = mapOf("\$schema" to JsonPrimitive(url))
 
-  return stringify(JsonObject.serializer(), JsonObject(append + json))
+  return encodeToString(JsonObject.serializer(), JsonObject(append + json))
 }
+
+@Deprecated(
+  message = "Use encodeToSchema instead",
+  replaceWith = ReplaceWith("this.encodeToSchema(descriptor)"),
+  level = DeprecationLevel.ERROR
+)
+fun Json.stringifyToSchema(descriptor: SerialDescriptor): String = encodeToSchema(descriptor)
 
 /**
  * Stringifies the provided [descriptor] with [buildJsonSchema]
  */
-fun Json.stringifyToSchema(descriptor: SerialDescriptor): String {
-  return stringify(JsonObject.serializer(), buildJsonSchema(descriptor))
+fun Json.encodeToSchema(descriptor: SerialDescriptor): String {
+  return encodeToString(JsonObject.serializer(), buildJsonSchema(descriptor))
 }
+
+@Deprecated(
+  message = "Use encodeToSchema instead",
+  replaceWith = ReplaceWith("this.encodeToSchema(serializer)"),
+  level = DeprecationLevel.ERROR
+)
+fun Json.stringifyToSchema(serializer: SerializationStrategy<*>): String = encodeToSchema(serializer)
 
 /**
  * Stringifies the provided [serializer] with [buildJsonSchema],
  * same as doing `json.stringifyToSchema(serializer.descriptor)`
  */
-fun Json.stringifyToSchema(serializer: SerializationStrategy<*>): String {
-  return stringifyToSchema(serializer.descriptor)
+fun Json.encodeToSchema(serializer: SerializationStrategy<*>): String {
+  return encodeToSchema(serializer.descriptor)
 }
 
 /**
  * Creates a Json Schema using the provided [descriptor]
  */
 fun buildJsonSchema(descriptor: SerialDescriptor): JsonObject {
-  val append = mapOf("\$schema" to JsonLiteral("http://json-schema.org/draft-07/schema"))
+  val append = mapOf("\$schema" to JsonPrimitive("http://json-schema.org/draft-07/schema"))
 
   return JsonObject(append + descriptor.jsonSchemaObject())
 }
