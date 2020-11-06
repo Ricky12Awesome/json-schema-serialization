@@ -13,7 +13,18 @@
   "bool": false,
   "sub": null,
   "sealed": {
-    "type": "TestSealed.B",
-    "number": 33
+    "type": "TestSealed.A",
+    "text": ""
+  },
+  "nested": {
+    "list": [
+      ""
+    ],
+    "sealedList": [
+      {
+        "type": "TestSealed.B",
+        "number": 32
+      }
+    ]
   }
 }

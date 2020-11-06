@@ -3,6 +3,7 @@ import com.github.ricky12awesome.jss.buildJsonSchema
 import com.github.ricky12awesome.jss.encodeToSchema
 import com.github.ricky12awesome.jss.globalJson
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -21,12 +22,13 @@ data class TestData(
   @JsonSchema.FloatRange(0.0, 1.0)
   val rangeDouble: Double = 0.5,
   val nested: TestDataNested? = null,
-  val sealed: TestSealed? = null
+  val sealed: TestSealed? = null,
 )
 
 @Serializable
 data class TestDataNested(
   val list: List<String>,
+  val sealedList: List<TestSealed> = listOf(),
   val rangeFloat: Float = 20f,
   val rangeLong: Long = 20L
 )
@@ -90,7 +92,57 @@ class Tests {
             },
             "properties": {
               "list": {
-                "type": "array"
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "sealedList": {
+                "type": "array",
+                "items": {
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "TestSealed.A",
+                        "TestSealed.B"
+                      ]
+                    }
+                  },
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "TestSealed.A"
+                        },
+                        "text": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "text"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "TestSealed.B"
+                        },
+                        "number": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "number"
+                      ]
+                    }
+                  ],
+                  "required": [
+                    "type"
+                  ]
+                }
               },
               "rangeFloat": {
                 "type": "number"
@@ -104,12 +156,6 @@ class Tests {
             ]
           },
           "sealed": {
-            "if": {
-              "type": "object"
-            },
-            "else": {
-              "type": "null"
-            },
             "properties": {
               "type": {
                 "type": "string",
@@ -120,6 +166,9 @@ class Tests {
               }
             },
             "anyOf": [
+              {
+                "type": "null"
+              },
               {
                 "type": "object",
                 "properties": {
@@ -148,6 +197,9 @@ class Tests {
                   "number"
                 ]
               }
+            ],
+            "required": [
+              "type"
             ]
           }
         },
@@ -159,7 +211,7 @@ class Tests {
       }
     """
 
-//    println(json.encodeToString(JsonObject.serializer(), schema))
+    println(json.encodeToString(JsonObject.serializer(), schema))
 
     assertEquals(schema, schemaAsText.let(json::parseToJsonElement))
   }
@@ -167,5 +219,10 @@ class Tests {
   @Test
   fun `test sealed`() {
     println(json.encodeToSchema(TestSealed.serializer()))
+  }
+
+  @Test
+  fun `test nested`() {
+    println(json.encodeToSchema(TestDataNested.serializer()))
   }
 }

@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-  implementation("com.github.Ricky12Awesome:json-schema-serialization:0.6.1")
+  implementation("com.github.Ricky12Awesome:json-schema-serialization:0.6.2")
 }
 ```
 
@@ -40,12 +40,13 @@ data class TestData(
   @JsonSchema.FloatRange(0.0, 1.0)
   val rangeDouble: Double = 0.5,
   val nested: TestDataNested? = null,
-  val sealed: TestSealed? = null
+  val sealed: TestSealed? = null,
 )
 
 @Serializable
 data class TestDataNested(
   val list: List<String>,
+  val sealedList: List<TestSealed> = listOf(),
   val rangeFloat: Float = 20f,
   val rangeLong: Long = 20L
 )
@@ -108,7 +109,57 @@ globalJson.encodeToSchema(Test.serializer())
       },
       "properties": {
         "list": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sealedList": {
+          "type": "array",
+          "items": {
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "TestSealed.A",
+                  "TestSealed.B"
+                ]
+              }
+            },
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "TestSealed.A"
+                  },
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "text"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "TestSealed.B"
+                  },
+                  "number": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "number"
+                ]
+              }
+            ],
+            "required": [
+              "type"
+            ]
+          }
         },
         "rangeFloat": {
           "type": "number"
@@ -122,12 +173,6 @@ globalJson.encodeToSchema(Test.serializer())
       ]
     },
     "sealed": {
-      "if": {
-        "type": "object"
-      },
-      "else": {
-        "type": "null"
-      },
       "properties": {
         "type": {
           "type": "string",
@@ -138,6 +183,9 @@ globalJson.encodeToSchema(Test.serializer())
         }
       },
       "anyOf": [
+        {
+          "type": "null"
+        },
         {
           "type": "object",
           "properties": {
@@ -166,6 +214,9 @@ globalJson.encodeToSchema(Test.serializer())
             "number"
           ]
         }
+      ],
+      "required": [
+        "type"
       ]
     }
   },

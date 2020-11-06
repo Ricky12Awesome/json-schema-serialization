@@ -34,50 +34,57 @@ internal fun SerialDescriptor.jsonSchemaObject(): JsonObject {
   val required = mutableListOf<JsonPrimitive>()
   val anyOf = mutableListOf<JsonElement>()
 
-  when (kind) {
-    PolymorphicKind.SEALED -> {
-      val (_, value) = elementDescriptors.toList()
+  val isSealed = kind == PolymorphicKind.SEALED
 
-      properties["type"] = buildJson {
-        it["type"] = JsonType.STRING.json
-        it["enum"] = value.elementNames
-      }
+  if (isSealed) {
+    val (_, value) = elementDescriptors.toList()
 
-      value.elementDescriptors.forEachIndexed { index, child ->
-        val schema = child.jsonSchemaFor(value.getElementAnnotations(index))
-        val newSchema = schema.mapValues { (name, element) ->
-          if (element is JsonObject && name == "properties") {
-            val prependProps = mutableMapOf<String, JsonElement>()
+    properties["type"] = buildJson {
+      it["type"] = JsonType.STRING.json
+      it["enum"] = value.elementNames
+    }
 
-            prependProps["type"] = buildJson {
-              it["const"] = child.serialName
-            }
+    required += JsonPrimitive("type")
 
-            JsonObject(prependProps + element)
-          } else {
-            element
-          }
-
-        }
-
-        anyOf += JsonObject(newSchema)
+    if (isNullable) {
+      anyOf += buildJson { nullable ->
+        nullable["type"] = "null"
       }
     }
-    else -> {
-      elementDescriptors.forEachIndexed { index, child ->
-        val name = getElementName(index)
-        val annotations = getElementAnnotations(index)
 
-        properties[name] = child.jsonSchemaFor(annotations)
+    value.elementDescriptors.forEachIndexed { index, child ->
+      val schema = child.jsonSchemaFor(value.getElementAnnotations(index))
+      val newSchema = schema.mapValues { (name, element) ->
+        if (element is JsonObject && name == "properties") {
+          val prependProps = mutableMapOf<String, JsonElement>()
 
-        if (!isElementOptional(index)) {
-          required += JsonPrimitive(name)
+          prependProps["type"] = buildJson {
+            it["const"] = child.serialName
+          }
+
+          JsonObject(prependProps + element)
+        } else {
+          element
         }
+
+      }
+
+      anyOf += JsonObject(newSchema)
+    }
+  } else {
+    elementDescriptors.forEachIndexed { index, child ->
+      val name = getElementName(index)
+      val annotations = getElementAnnotations(index)
+
+      properties[name] = child.jsonSchemaFor(annotations)
+
+      if (!isElementOptional(index)) {
+        required += JsonPrimitive(name)
       }
     }
   }
 
-  return jsonSchemaElement(annotations) {
+  return jsonSchemaElement(annotations, isSealed, !isSealed) {
     if (properties.isNotEmpty()) {
       it["properties"] = JsonObject(properties)
     }
@@ -94,7 +101,11 @@ internal fun SerialDescriptor.jsonSchemaObject(): JsonObject {
 
 @PublishedApi
 internal fun SerialDescriptor.jsonSchemaArray(annotations: List<Annotation> = listOf()): JsonObject {
-  return jsonSchemaElement(annotations)
+  return jsonSchemaElement(annotations) {
+    val type = getElementDescriptor(0)
+
+    it["items"] = type.jsonSchemaFor(getElementAnnotations(0))
+  }
 }
 
 @PublishedApi
@@ -152,9 +163,10 @@ internal fun SerialDescriptor.jsonSchemaFor(annotations: List<Annotation> = list
 @PublishedApi
 internal fun JsonObjectBuilder.applyJsonSchemaDefaults(
   descriptor: SerialDescriptor,
-  annotations: List<Annotation>
+  annotations: List<Annotation>,
+  skipNullCheck: Boolean = false
 ) {
-  if (descriptor.isNullable) {
+  if (descriptor.isNullable && !skipNullCheck) {
     this["if"] = buildJson {
       it["type"] = descriptor.jsonLiteral
     }
@@ -184,10 +196,15 @@ internal fun JsonObjectBuilder.applyJsonSchemaDefaults(
 
 internal inline fun SerialDescriptor.jsonSchemaElement(
   annotations: List<Annotation>,
+  skipNullCheck: Boolean = false,
+  applyDefaults: Boolean = true,
   extra: (JsonObjectBuilder) -> Unit = {}
 ): JsonObject {
   return buildJson {
-    it.applyJsonSchemaDefaults(this, annotations)
+    if (applyDefaults) {
+      it.applyJsonSchemaDefaults(this, annotations, skipNullCheck)
+    }
+
     it.apply(extra)
   }
 }
