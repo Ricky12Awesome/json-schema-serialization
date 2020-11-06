@@ -17,6 +17,7 @@ internal inline val SerialDescriptor.jsonLiteral
 internal val SerialKind.jsonType: JsonType
   get() = when (this) {
     StructureKind.LIST -> JsonType.ARRAY
+    StructureKind.MAP -> JsonType.MAP
     PrimitiveKind.BYTE, PrimitiveKind.SHORT, PrimitiveKind.INT, PrimitiveKind.LONG,
     PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE -> JsonType.NUMBER
     PrimitiveKind.STRING, PrimitiveKind.CHAR, SerialKind.ENUM -> JsonType.STRING
@@ -99,6 +100,36 @@ internal fun SerialDescriptor.jsonSchemaObject(): JsonObject {
   }
 }
 
+internal fun SerialDescriptor.jsonSchemaMap(): JsonObject {
+  var valueType: JsonObject? = null
+  elementDescriptors.forEachIndexed { index, child ->
+    val name = getElementName(index)
+    val annotations = getElementAnnotations(index)
+
+    when(index) {
+      0 -> {
+        require(child.kind == PrimitiveKind.STRING) {
+          "cannot have non string keys in maps"
+        }
+      }
+      1 -> {
+        valueType = child.jsonSchemaFor(annotations)
+      }
+    }
+
+//    properties[name] = child.jsonSchemaFor(annotations)
+//
+//    if (!isElementOptional(index)) {
+//      required += JsonPrimitive(name)
+//    }
+  }
+
+  return jsonSchemaElement(annotations, false, false) {
+    it["type"] = JsonPrimitive("object")
+    it["additionalProperties"] = valueType!!
+  }
+}
+
 @PublishedApi
 internal fun SerialDescriptor.jsonSchemaArray(annotations: List<Annotation> = listOf()): JsonObject {
   return jsonSchemaElement(annotations) {
@@ -156,6 +187,7 @@ internal fun SerialDescriptor.jsonSchemaFor(annotations: List<Annotation> = list
     JsonType.NUMBER -> jsonSchemaNumber(annotations)
     JsonType.STRING -> jsonSchemaString(annotations)
     JsonType.BOOLEAN -> jsonSchemaBoolean(annotations)
+    JsonType.MAP -> jsonSchemaMap()
     JsonType.OBJECT -> jsonSchemaObject()
   }
 }

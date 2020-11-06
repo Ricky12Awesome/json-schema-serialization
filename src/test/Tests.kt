@@ -23,6 +23,8 @@ data class TestData(
   val rangeDouble: Double = 0.5,
   val nested: TestDataNested? = null,
   val sealed: TestSealed? = null,
+  val mapToInt: Map<String, Int> = mapOf(),
+  val mapToString: Map<String, String> = mapOf()
 )
 
 @Serializable
@@ -201,6 +203,18 @@ class Tests {
             "required": [
               "type"
             ]
+          },
+          "mapToInt": {
+            "type":"object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "mapToString": {
+            "type":"object",
+            "additionalProperties": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -213,7 +227,7 @@ class Tests {
 
     println(json.encodeToString(JsonObject.serializer(), schema))
 
-    assertEquals(schema, schemaAsText.let(json::parseToJsonElement))
+    assertEquals(schemaAsText.let(json::parseToJsonElement), schema)
   }
 
   @Test
