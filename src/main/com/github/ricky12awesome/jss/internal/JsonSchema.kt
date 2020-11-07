@@ -17,7 +17,8 @@ internal inline val SerialDescriptor.jsonLiteral
 internal val SerialKind.jsonType: JsonType
   get() = when (this) {
     StructureKind.LIST -> JsonType.ARRAY
-    StructureKind.MAP -> JsonType.MAP
+    StructureKind.MAP -> JsonType.OBJECT_MAP
+    PolymorphicKind.SEALED -> JsonType.OBJECT_SEALED
     PrimitiveKind.BYTE, PrimitiveKind.SHORT, PrimitiveKind.INT, PrimitiveKind.LONG,
     PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE -> JsonType.NUMBER
     PrimitiveKind.STRING, PrimitiveKind.CHAR, SerialKind.ENUM -> JsonType.STRING
@@ -30,62 +31,46 @@ internal inline fun <reified T> List<Annotation>.lastOfInstance(): T? {
 }
 
 @PublishedApi
-internal fun SerialDescriptor.jsonSchemaObject(): JsonObject {
+internal fun SerialDescriptor.jsonSchemaObjectSealed(): JsonObject {
   val properties = mutableMapOf<String, JsonElement>()
   val required = mutableListOf<JsonPrimitive>()
   val anyOf = mutableListOf<JsonElement>()
 
-  val isSealed = kind == PolymorphicKind.SEALED
+  val (_, value) = elementDescriptors.toList()
 
-  if (isSealed) {
-    val (_, value) = elementDescriptors.toList()
+  properties["type"] = buildJson {
+    it["type"] = JsonType.STRING.json
+    it["enum"] = value.elementNames
+  }
 
-    properties["type"] = buildJson {
-      it["type"] = JsonType.STRING.json
-      it["enum"] = value.elementNames
-    }
+  required += JsonPrimitive("type")
 
-    required += JsonPrimitive("type")
-
-    if (isNullable) {
-      anyOf += buildJson { nullable ->
-        nullable["type"] = "null"
-      }
-    }
-
-    value.elementDescriptors.forEachIndexed { index, child ->
-      val schema = child.jsonSchemaFor(value.getElementAnnotations(index))
-      val newSchema = schema.mapValues { (name, element) ->
-        if (element is JsonObject && name == "properties") {
-          val prependProps = mutableMapOf<String, JsonElement>()
-
-          prependProps["type"] = buildJson {
-            it["const"] = child.serialName
-          }
-
-          JsonObject(prependProps + element)
-        } else {
-          element
-        }
-
-      }
-
-      anyOf += JsonObject(newSchema)
-    }
-  } else {
-    elementDescriptors.forEachIndexed { index, child ->
-      val name = getElementName(index)
-      val annotations = getElementAnnotations(index)
-
-      properties[name] = child.jsonSchemaFor(annotations)
-
-      if (!isElementOptional(index)) {
-        required += JsonPrimitive(name)
-      }
+  if (isNullable) {
+    anyOf += buildJson { nullable ->
+      nullable["type"] = "null"
     }
   }
 
-  return jsonSchemaElement(annotations, isSealed, !isSealed) {
+  value.elementDescriptors.forEachIndexed { index, child ->
+    val schema = child.createJsonSchema(value.getElementAnnotations(index))
+    val newSchema = schema.mapValues { (name, element) ->
+      if (element is JsonObject && name == "properties") {
+        val prependProps = mutableMapOf<String, JsonElement>()
+
+        prependProps["type"] = buildJson {
+          it["const"] = child.serialName
+        }
+
+        JsonObject(prependProps + element)
+      } else {
+        element
+      }
+    }
+
+    anyOf += JsonObject(newSchema)
+  }
+
+  return jsonSchemaElement(annotations, skipNullCheck = true, applyDefaults = false) {
     if (properties.isNotEmpty()) {
       it["properties"] = JsonObject(properties)
     }
@@ -100,33 +85,42 @@ internal fun SerialDescriptor.jsonSchemaObject(): JsonObject {
   }
 }
 
-internal fun SerialDescriptor.jsonSchemaMap(): JsonObject {
-  var valueType: JsonObject? = null
+@PublishedApi
+internal fun SerialDescriptor.jsonSchemaObject(): JsonObject {
+  val properties = mutableMapOf<String, JsonElement>()
+  val required = mutableListOf<JsonPrimitive>()
+
   elementDescriptors.forEachIndexed { index, child ->
     val name = getElementName(index)
     val annotations = getElementAnnotations(index)
 
-    when(index) {
-      0 -> {
-        require(child.kind == PrimitiveKind.STRING) {
-          "cannot have non string keys in maps"
-        }
-      }
-      1 -> {
-        valueType = child.jsonSchemaFor(annotations)
-      }
-    }
+    properties[name] = child.createJsonSchema(annotations)
 
-//    properties[name] = child.jsonSchemaFor(annotations)
-//
-//    if (!isElementOptional(index)) {
-//      required += JsonPrimitive(name)
-//    }
+    if (!isElementOptional(index)) {
+      required += JsonPrimitive(name)
+    }
   }
 
-  return jsonSchemaElement(annotations, false, false) {
-    it["type"] = JsonPrimitive("object")
-    it["additionalProperties"] = valueType!!
+  return jsonSchemaElement(annotations) {
+    if (properties.isNotEmpty()) {
+      it["properties"] = JsonObject(properties)
+    }
+
+    if (required.isNotEmpty()) {
+      it["required"] = JsonArray(required)
+    }
+  }
+}
+
+internal fun SerialDescriptor.jsonSchemaObjectMap(): JsonObject {
+  return jsonSchemaElement(annotations, skipNullCheck = false) {
+    val (key, value) = elementDescriptors.toList()
+
+    require(key.kind == PrimitiveKind.STRING) {
+      "cannot have non string keys in maps"
+    }
+
+    it["additionalProperties"] = value.createJsonSchema(getElementAnnotations(1))
   }
 }
 
@@ -135,7 +129,7 @@ internal fun SerialDescriptor.jsonSchemaArray(annotations: List<Annotation> = li
   return jsonSchemaElement(annotations) {
     val type = getElementDescriptor(0)
 
-    it["items"] = type.jsonSchemaFor(getElementAnnotations(0))
+    it["items"] = type.createJsonSchema(getElementAnnotations(0))
   }
 }
 
@@ -181,13 +175,14 @@ internal fun SerialDescriptor.jsonSchemaBoolean(annotations: List<Annotation> = 
 }
 
 @PublishedApi
-internal fun SerialDescriptor.jsonSchemaFor(annotations: List<Annotation> = listOf()): JsonObject {
+internal fun SerialDescriptor.createJsonSchema(annotations: List<Annotation> = listOf()): JsonObject {
   return when (kind.jsonType) {
     JsonType.ARRAY -> jsonSchemaArray(annotations)
     JsonType.NUMBER -> jsonSchemaNumber(annotations)
     JsonType.STRING -> jsonSchemaString(annotations)
     JsonType.BOOLEAN -> jsonSchemaBoolean(annotations)
-    JsonType.MAP -> jsonSchemaMap()
+    JsonType.OBJECT_MAP -> jsonSchemaObjectMap()
+    JsonType.OBJECT_SEALED -> jsonSchemaObjectSealed()
     JsonType.OBJECT -> jsonSchemaObject()
   }
 }
@@ -241,12 +236,10 @@ internal inline fun SerialDescriptor.jsonSchemaElement(
   }
 }
 
-// Since built-in json dsl isn't inlined, i made my own
 internal inline fun buildJson(builder: (JsonObjectBuilder) -> Unit): JsonObject {
   return JsonObject(JsonObjectBuilder().apply(builder).content)
 }
 
-// Since built-in one is internal i have to do this
 internal class JsonObjectBuilder(
   val content: MutableMap<String, JsonElement> = linkedMapOf()
 ) : MutableMap<String, JsonElement> by content {

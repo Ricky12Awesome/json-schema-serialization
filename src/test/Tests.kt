@@ -2,6 +2,7 @@ import com.github.ricky12awesome.jss.JsonSchema
 import com.github.ricky12awesome.jss.buildJsonSchema
 import com.github.ricky12awesome.jss.encodeToSchema
 import com.github.ricky12awesome.jss.globalJson
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
@@ -37,11 +38,25 @@ data class TestDataNested(
 
 @Serializable
 sealed class TestSealed {
+
   @Serializable
   data class A(val text: String) : TestSealed()
 
   @Serializable
   data class B(val number: Double) : TestSealed()
+}
+
+@Serializable
+sealed class TestSealedNested(
+  val elements: Map<String, TestSealedNested> = mapOf()
+) {
+  @Serializable
+  @SerialName("A")
+  data class A(val text: String) : TestSealedNested()
+
+  @Serializable
+  @SerialName("B")
+  data class B(val number: Double) : TestSealedNested()
 }
 
 class Tests {
@@ -233,6 +248,11 @@ class Tests {
   @Test
   fun `test sealed`() {
     println(json.encodeToSchema(TestSealed.serializer()))
+  }
+
+  @Test
+  fun `test sealed nested`() {
+    println(json.encodeToSchema(TestSealedNested.serializer()))
   }
 
   @Test

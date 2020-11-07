@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-  implementation("com.github.Ricky12Awesome:json-schema-serialization:0.6.2")
+  implementation("com.github.Ricky12Awesome:json-schema-serialization:0.6.3")
 }
 ```
 
@@ -41,6 +41,8 @@ data class TestData(
   val rangeDouble: Double = 0.5,
   val nested: TestDataNested? = null,
   val sealed: TestSealed? = null,
+  val mapToInt: Map<String, Int> = mapOf(),
+  val mapToString: Map<String, String> = mapOf()
 )
 
 @Serializable
@@ -53,6 +55,7 @@ data class TestDataNested(
 
 @Serializable
 sealed class TestSealed {
+
   @Serializable
   data class A(val text: String) : TestSealed()
 
@@ -218,6 +221,18 @@ globalJson.encodeToSchema(Test.serializer())
       "required": [
         "type"
       ]
+    },
+    "mapToInt": {
+      "type":"object",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "mapToString": {
+      "type":"object",
+      "additionalProperties": {
+        "type": "string"
+      }
     }
   },
   "required": [

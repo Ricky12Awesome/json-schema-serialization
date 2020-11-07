@@ -19,12 +19,9 @@
   "nested": {
     "list": [
       ""
-    ],
-    "sealedList": [
-      {
-        "type": "TestSealed.B",
-        "number": 32
-      }
     ]
+  },
+  "mapToInt": {
+    "test": 3
   }
 }

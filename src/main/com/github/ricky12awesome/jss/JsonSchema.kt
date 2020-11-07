@@ -23,15 +23,16 @@ val globalJson by lazy {
 /**
  * Represents the type of a json property
  */
-enum class JsonType(raw: String) {
+enum class JsonType(jsonType: String) {
   ARRAY("array"),
   NUMBER("number"),
   STRING("string"),
   BOOLEAN("boolean"),
   OBJECT("object"),
-  MAP("map");
+  OBJECT_SEALED("object"),
+  OBJECT_MAP("object");
 
-  val json = JsonPrimitive(raw)
+  val json = JsonPrimitive(jsonType)
 
   override fun toString(): String = json.content
 }

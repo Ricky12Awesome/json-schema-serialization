@@ -150,6 +150,35 @@
       "required": [
         "type"
       ]
+    },
+    "test": {
+      "$ref": "#/definitions/test"
+    },
+    "mapToInt": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "mapToString": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "definitions": {
+    "test": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "type": "number"
+        },
+        "b": {
+          "$ref": "#/definitions/test"
+        }
+      },
+      "required": ["a"]
     }
   },
   "required": [
