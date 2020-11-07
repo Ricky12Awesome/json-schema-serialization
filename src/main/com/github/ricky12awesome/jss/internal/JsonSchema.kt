@@ -8,6 +8,7 @@ import com.github.ricky12awesome.jss.JsonSchema.Pattern
 import com.github.ricky12awesome.jss.JsonType
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.*
+import java.util.concurrent.ConcurrentHashMap
 
 @PublishedApi
 internal inline val SerialDescriptor.jsonLiteral
@@ -31,7 +32,46 @@ internal inline fun <reified T> List<Annotation>.lastOfInstance(): T? {
 }
 
 @PublishedApi
-internal fun SerialDescriptor.jsonSchemaObjectSealed(): JsonObject {
+internal fun SerialDescriptor.jsonSchemaObject(definitions: JsonSchemaDefinitions): JsonObject {
+  val properties = mutableMapOf<String, JsonElement>()
+  val required = mutableListOf<JsonPrimitive>()
+
+  elementDescriptors.forEachIndexed { index, child ->
+    val name = getElementName(index)
+    val annotations = getElementAnnotations(index)
+
+    properties[name] = child.createJsonSchema(annotations, definitions)
+
+    if (!isElementOptional(index)) {
+      required += JsonPrimitive(name)
+    }
+  }
+
+  return jsonSchemaElement(annotations) {
+    if (properties.isNotEmpty()) {
+      it["properties"] = JsonObject(properties)
+    }
+
+    if (required.isNotEmpty()) {
+      it["required"] = JsonArray(required)
+    }
+  }
+}
+
+internal fun SerialDescriptor.jsonSchemaObjectMap(definitions: JsonSchemaDefinitions): JsonObject {
+  return jsonSchemaElement(annotations, skipNullCheck = false) {
+    val (key, value) = elementDescriptors.toList()
+
+    require(key.kind == PrimitiveKind.STRING) {
+      "cannot have non string keys in maps"
+    }
+
+    it["additionalProperties"] = value.createJsonSchema(getElementAnnotations(1), definitions)
+  }
+}
+
+@PublishedApi
+internal fun SerialDescriptor.jsonSchemaObjectSealed(definitions: JsonSchemaDefinitions): JsonObject {
   val properties = mutableMapOf<String, JsonElement>()
   val required = mutableListOf<JsonPrimitive>()
   val anyOf = mutableListOf<JsonElement>()
@@ -52,7 +92,7 @@ internal fun SerialDescriptor.jsonSchemaObjectSealed(): JsonObject {
   }
 
   value.elementDescriptors.forEachIndexed { index, child ->
-    val schema = child.createJsonSchema(value.getElementAnnotations(index))
+    val schema = child.createJsonSchema(value.getElementAnnotations(index), definitions)
     val newSchema = schema.mapValues { (name, element) ->
       if (element is JsonObject && name == "properties") {
         val prependProps = mutableMapOf<String, JsonElement>()
@@ -86,55 +126,21 @@ internal fun SerialDescriptor.jsonSchemaObjectSealed(): JsonObject {
 }
 
 @PublishedApi
-internal fun SerialDescriptor.jsonSchemaObject(): JsonObject {
-  val properties = mutableMapOf<String, JsonElement>()
-  val required = mutableListOf<JsonPrimitive>()
-
-  elementDescriptors.forEachIndexed { index, child ->
-    val name = getElementName(index)
-    val annotations = getElementAnnotations(index)
-
-    properties[name] = child.createJsonSchema(annotations)
-
-    if (!isElementOptional(index)) {
-      required += JsonPrimitive(name)
-    }
-  }
-
-  return jsonSchemaElement(annotations) {
-    if (properties.isNotEmpty()) {
-      it["properties"] = JsonObject(properties)
-    }
-
-    if (required.isNotEmpty()) {
-      it["required"] = JsonArray(required)
-    }
-  }
-}
-
-internal fun SerialDescriptor.jsonSchemaObjectMap(): JsonObject {
-  return jsonSchemaElement(annotations, skipNullCheck = false) {
-    val (key, value) = elementDescriptors.toList()
-
-    require(key.kind == PrimitiveKind.STRING) {
-      "cannot have non string keys in maps"
-    }
-
-    it["additionalProperties"] = value.createJsonSchema(getElementAnnotations(1))
-  }
-}
-
-@PublishedApi
-internal fun SerialDescriptor.jsonSchemaArray(annotations: List<Annotation> = listOf()): JsonObject {
+internal fun SerialDescriptor.jsonSchemaArray(
+  annotations: List<Annotation> = listOf(),
+  definitions: JsonSchemaDefinitions
+): JsonObject {
   return jsonSchemaElement(annotations) {
     val type = getElementDescriptor(0)
 
-    it["items"] = type.createJsonSchema(getElementAnnotations(0))
+    it["items"] = type.createJsonSchema(getElementAnnotations(0), definitions)
   }
 }
 
 @PublishedApi
-internal fun SerialDescriptor.jsonSchemaString(annotations: List<Annotation> = listOf()): JsonObject {
+internal fun SerialDescriptor.jsonSchemaString(
+  annotations: List<Annotation> = listOf()
+): JsonObject {
   return jsonSchemaElement(annotations) {
     val pattern = annotations.lastOfInstance<Pattern>()?.pattern ?: ""
     val enum = annotations.lastOfInstance<StringEnum>()?.values ?: arrayOf()
@@ -150,7 +156,9 @@ internal fun SerialDescriptor.jsonSchemaString(annotations: List<Annotation> = l
 }
 
 @PublishedApi
-internal fun SerialDescriptor.jsonSchemaNumber(annotations: List<Annotation> = listOf()): JsonObject {
+internal fun SerialDescriptor.jsonSchemaNumber(
+  annotations: List<Annotation> = listOf()
+): JsonObject {
   return jsonSchemaElement(annotations) {
     val value = when (kind) {
       PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE -> annotations
@@ -170,20 +178,27 @@ internal fun SerialDescriptor.jsonSchemaNumber(annotations: List<Annotation> = l
 }
 
 @PublishedApi
-internal fun SerialDescriptor.jsonSchemaBoolean(annotations: List<Annotation> = listOf()): JsonObject {
+internal fun SerialDescriptor.jsonSchemaBoolean(
+  annotations: List<Annotation> = listOf()
+): JsonObject {
   return jsonSchemaElement(annotations)
 }
 
 @PublishedApi
-internal fun SerialDescriptor.createJsonSchema(annotations: List<Annotation> = listOf()): JsonObject {
+internal fun SerialDescriptor.createJsonSchema(
+  annotations: List<Annotation>,
+  definitions: JsonSchemaDefinitions
+): JsonObject {
+  val key = JsonSchemaDefinitions.Key(this, annotations)
+
   return when (kind.jsonType) {
-    JsonType.ARRAY -> jsonSchemaArray(annotations)
-    JsonType.NUMBER -> jsonSchemaNumber(annotations)
-    JsonType.STRING -> jsonSchemaString(annotations)
-    JsonType.BOOLEAN -> jsonSchemaBoolean(annotations)
-    JsonType.OBJECT_MAP -> jsonSchemaObjectMap()
-    JsonType.OBJECT_SEALED -> jsonSchemaObjectSealed()
-    JsonType.OBJECT -> jsonSchemaObject()
+    JsonType.NUMBER -> definitions.get(key) { jsonSchemaNumber(annotations) }
+    JsonType.STRING -> definitions.get(key) { jsonSchemaString(annotations) }
+    JsonType.BOOLEAN -> definitions.get(key) { jsonSchemaBoolean(annotations) }
+    JsonType.ARRAY -> definitions.get(key) { jsonSchemaArray(annotations, definitions) }
+    JsonType.OBJECT -> definitions.get(key) { jsonSchemaObject(definitions) }
+    JsonType.OBJECT_MAP -> definitions.get(key) { jsonSchemaObjectMap(definitions) }
+    JsonType.OBJECT_SEALED -> definitions.get(key) { jsonSchemaObjectSealed(definitions) }
   }
 }
 
@@ -248,3 +263,52 @@ internal class JsonObjectBuilder(
   operator fun set(key: String, value: Number?) = set(key, JsonPrimitive(value))
 }
 
+internal class JsonSchemaDefinitions {
+  private val definitions: MutableMap<String, JsonObject> = ConcurrentHashMap()
+  private val creator: MutableMap<String, () -> JsonObject> = ConcurrentHashMap()
+
+  fun getId(pair: Key): String {
+    val (descriptor, annotations) = pair
+
+    return (descriptor.hashCode().toLong() shl 32 xor annotations.hashCode().toLong())
+      .toString(36)
+      .replaceFirst("-", "x")
+  }
+
+  operator fun contains(descriptor: Key): Boolean = getId(descriptor) in definitions
+
+  operator fun set(descriptor: Key, value: JsonObject) {
+    definitions[getId(descriptor)] = value
+  }
+
+  operator fun get(descriptor: Key): JsonObject {
+    return buildJson {
+      it["\$ref"] = "#/definitions/${getId(descriptor)}"
+    }
+  }
+
+  fun get(descriptor: Key, create: () -> JsonObject): JsonObject {
+    val id = getId(descriptor)
+
+    if (id !in definitions) {
+      creator[id] = create
+    }
+
+    return buildJson {
+      it["\$ref"] = "#/definitions/$id"
+    }
+  }
+
+  fun getDefinitionsAsJsonObject(): JsonObject {
+    while (creator.isNotEmpty()) {
+      creator.forEach { (id, create) ->
+        definitions[id] = create()
+        creator.remove(id)
+      }
+    }
+
+    return JsonObject(definitions)
+  }
+
+  data class Key(val descriptor: SerialDescriptor, val annotations: List<Annotation>)
+}

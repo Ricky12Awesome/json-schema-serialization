@@ -14,7 +14,7 @@
   "sub": null,
   "sealed": {
     "type": "TestSealed.A",
-    "text": ""
+    "number": 32
   },
   "nested": {
     "list": [

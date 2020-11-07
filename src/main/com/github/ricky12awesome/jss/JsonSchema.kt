@@ -1,6 +1,8 @@
 @file:OptIn(ExperimentalSerializationApi::class)
 package com.github.ricky12awesome.jss
 
+import com.github.ricky12awesome.jss.internal.JsonSchemaDefinitions
+import com.github.ricky12awesome.jss.internal.createJsonSchema
 import kotlinx.serialization.*
 import com.github.ricky12awesome.jss.internal.jsonSchemaObject
 import kotlinx.serialization.descriptors.*
@@ -144,9 +146,12 @@ fun Json.encodeToSchema(serializer: SerializationStrategy<*>): String {
  * Creates a Json Schema using the provided [descriptor]
  */
 fun buildJsonSchema(descriptor: SerialDescriptor): JsonObject {
-  val append = mapOf("\$schema" to JsonPrimitive("http://json-schema.org/draft-07/schema"))
+  val prepend = mapOf("\$schema" to JsonPrimitive("http://json-schema.org/draft-07/schema"))
+  val definitions = JsonSchemaDefinitions()
+  val root = descriptor.createJsonSchema(listOf(), definitions)
+  val append = mapOf("definitions" to definitions.getDefinitionsAsJsonObject())
 
-  return JsonObject(append + descriptor.jsonSchemaObject())
+  return JsonObject(prepend + root + append)
 }
 
 /**
