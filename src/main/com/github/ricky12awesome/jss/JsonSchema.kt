@@ -28,7 +28,8 @@ enum class JsonType(raw: String) {
   NUMBER("number"),
   STRING("string"),
   BOOLEAN("boolean"),
-  OBJECT("object");
+  OBJECT("object"),
+  MAP("map");
 
   val json = JsonPrimitive(raw)
 
