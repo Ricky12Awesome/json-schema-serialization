@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-  implementation("com.github.Ricky12Awesome:json-schema-serialization:0.6.3")
+  implementation("com.github.Ricky12Awesome:json-schema-serialization:0.6.4")
 }
 ```
 
@@ -68,114 +68,42 @@ Will generate a schema using
 ```kotlin
 globalJson.encodeToSchema(Test.serializer())
 ```
+
+Definition names is defined by hash codes
 ```json
 {
   "$schema": "http://json-schema.org/draft-07/schema",
-  "type": "object",
-  "properties": {
-    "text": {
-      "type": "string",
-      "description": "Line 1\nLine 2"
-    },
-    "enum": {
-      "type": "string",
-      "enum": [
-        "A",
-        "B",
-        "C"
-      ]
-    },
-    "specialEnum": {
-      "type": "string",
-      "enum": [
-        "First",
-        "Second",
-        "Third"
-      ]
-    },
-    "rangeInt": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 100
-    },
-    "rangeDouble": {
-      "type": "number",
-      "minimum": 0.0,
-      "maximum": 1.0
-    },
-    "nested": {
-      "if": {
-        "type": "object"
-      },
-      "else": {
-        "type": "null"
-      },
+  "$ref": "#/definitions/183o58zq3y39d",
+  "definitions": {
+    "1lm2l56gwqosh": {
+      "type": "object",
       "properties": {
-        "list": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "sealedList": {
-          "type": "array",
-          "items": {
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "TestSealed.A",
-                  "TestSealed.B"
-                ]
-              }
-            },
-            "anyOf": [
-              {
-                "type": "object",
-                "properties": {
-                  "type": {
-                    "const": "TestSealed.A"
-                  },
-                  "text": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "text"
-                ]
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "type": {
-                    "const": "TestSealed.B"
-                  },
-                  "number": {
-                    "type": "number"
-                  }
-                },
-                "required": [
-                  "number"
-                ]
-              }
-            ],
-            "required": [
-              "type"
-            ]
-          }
-        },
-        "rangeFloat": {
-          "type": "number"
-        },
-        "rangeLong": {
-          "type": "number"
+        "number": {
+          "$ref": "#/definitions/18bamjjy12bk1"
         }
       },
       "required": [
-        "list"
+        "number"
       ]
     },
-    "sealed": {
+    "xr8yxhep2sxt": {
+      "type": "number"
+    },
+    "1tl79ageuufi9": {
+      "type": "number"
+    },
+    "x1du17sdz8114v": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "$ref": "#/definitions/1vq26amqu3nl"
+        }
+      },
+      "required": [
+        "text"
+      ]
+    },
+    "1mlzhftji1bsx": {
       "properties": {
         "type": {
           "type": "string",
@@ -190,56 +118,164 @@ globalJson.encodeToSchema(Test.serializer())
           "type": "null"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "const": "TestSealed.A"
-            },
-            "text": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "text"
-          ]
+          "$ref": "#/definitions/x1du17sdz8114v"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "const": "TestSealed.B"
-            },
-            "number": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "number"
-          ]
+          "$ref": "#/definitions/1lm2l56gwqosh"
         }
       ],
       "required": [
         "type"
       ]
     },
-    "mapToInt": {
-      "type":"object",
+    "1vq26aqksuhq": {
+      "type": "string",
+      "enum": [
+        "First",
+        "Second",
+        "Third"
+      ]
+    },
+    "183o58zq3y39d": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "$ref": "#/definitions/1vq26aoiy36e"
+        },
+        "enum": {
+          "$ref": "#/definitions/q3i1cuoc7b41"
+        },
+        "specialEnum": {
+          "$ref": "#/definitions/1vq26aqksuhq"
+        },
+        "rangeInt": {
+          "$ref": "#/definitions/xr8yxhq1teec"
+        },
+        "rangeDouble": {
+          "$ref": "#/definitions/18bamjk7pmmal"
+        },
+        "nested": {
+          "$ref": "#/definitions/9nzmu3mcary9"
+        },
+        "sealed": {
+          "$ref": "#/definitions/1mlzhftji1bsx"
+        },
+        "mapToInt": {
+          "$ref": "#/definitions/xu5yz9hf9k933"
+        },
+        "mapToString": {
+          "$ref": "#/definitions/x1q1hw0o77sydb"
+        }
+      },
+      "required": [
+        "text",
+        "enum",
+        "specialEnum"
+      ]
+    },
+    "1vq26aoiy36e": {
+      "type": "string",
+      "description": "Line 1\nLine 2"
+    },
+    "xr8yxhq1teec": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "1pvlhtlq9v2m9": {
+      "type": "number"
+    },
+    "x1q1hw0o77sydb": {
+      "type": "object",
       "additionalProperties": {
-        "type": "number"
+        "$ref": "#/definitions/1vq26amqu3nl"
       }
     },
-    "mapToString": {
-      "type":"object",
-      "additionalProperties": {
-        "type": "string"
+    "q3i1cuoc7b41": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
+    "18bamjk7pmmal": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "1vq26amqu3nl": {
+      "type": "string"
+    },
+    "xskpehk1nvgf": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/x75g0ny0xekfz"
       }
+    },
+    "x134bf5ifs1z3": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/1vq26amqu3nl"
+      }
+    },
+    "9nzmu3mcary9": {
+      "if": {
+        "type": "object"
+      },
+      "else": {
+        "type": "null"
+      },
+      "properties": {
+        "list": {
+          "$ref": "#/definitions/x134bf5ifs1z3"
+        },
+        "sealedList": {
+          "$ref": "#/definitions/xskpehk1nvgf"
+        },
+        "rangeFloat": {
+          "$ref": "#/definitions/1pvlhtlq9v2m9"
+        },
+        "rangeLong": {
+          "$ref": "#/definitions/1tl79ageuufi9"
+        }
+      },
+      "required": [
+        "list"
+      ]
+    },
+    "x75g0ny0xekfz": {
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "TestSealed.A",
+            "TestSealed.B"
+          ]
+        }
+      },
+      "anyOf": [
+        {
+          "$ref": "#/definitions/x1du17sdz8114v"
+        },
+        {
+          "$ref": "#/definitions/1lm2l56gwqosh"
+        }
+      ],
+      "required": [
+        "type"
+      ]
+    },
+    "xu5yz9hf9k933": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/xr8yxhep2sxt"
+      }
+    },
+    "18bamjjy12bk1": {
+      "type": "number"
     }
-  },
-  "required": [
-    "text",
-    "enum",
-    "specialEnum"
-  ]
+  }
 }
 ```
 
