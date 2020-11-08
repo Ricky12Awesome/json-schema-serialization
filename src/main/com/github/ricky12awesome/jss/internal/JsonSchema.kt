@@ -1,5 +1,6 @@
 package com.github.ricky12awesome.jss.internal
 
+import com.github.ricky12awesome.jss.JsonSchema
 import com.github.ricky12awesome.jss.JsonSchema.Description
 import com.github.ricky12awesome.jss.JsonSchema.StringEnum
 import com.github.ricky12awesome.jss.JsonSchema.IntRange
@@ -190,12 +191,13 @@ internal fun SerialDescriptor.createJsonSchema(
   definitions: JsonSchemaDefinitions
 ): JsonObject {
   val key = JsonSchemaDefinitions.Key(this, annotations)
+  val combinedAnnotations = annotations + this.annotations
 
   return when (kind.jsonType) {
-    JsonType.NUMBER -> definitions.get(key) { jsonSchemaNumber(annotations) }
-    JsonType.STRING -> definitions.get(key) { jsonSchemaString(annotations) }
-    JsonType.BOOLEAN -> definitions.get(key) { jsonSchemaBoolean(annotations) }
-    JsonType.ARRAY -> definitions.get(key) { jsonSchemaArray(annotations, definitions) }
+    JsonType.NUMBER -> definitions.get(key) { jsonSchemaNumber(combinedAnnotations) }
+    JsonType.STRING -> definitions.get(key) { jsonSchemaString(combinedAnnotations) }
+    JsonType.BOOLEAN -> definitions.get(key) { jsonSchemaBoolean(combinedAnnotations) }
+    JsonType.ARRAY -> definitions.get(key) { jsonSchemaArray(combinedAnnotations, definitions) }
     JsonType.OBJECT -> definitions.get(key) { jsonSchemaObject(definitions) }
     JsonType.OBJECT_MAP -> definitions.get(key) { jsonSchemaObjectMap(definitions) }
     JsonType.OBJECT_SEALED -> definitions.get(key) { jsonSchemaObjectSealed(definitions) }
@@ -263,22 +265,28 @@ internal class JsonObjectBuilder(
   operator fun set(key: String, value: Number?) = set(key, JsonPrimitive(value))
 }
 
-internal class JsonSchemaDefinitions {
+internal class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
   private val definitions: MutableMap<String, JsonObject> = ConcurrentHashMap()
   private val creator: MutableMap<String, () -> JsonObject> = ConcurrentHashMap()
 
-  fun getId(pair: Key): String {
-    val (descriptor, annotations) = pair
+  fun getId(key: Key): String {
+    val (descriptor, annotations) = key
 
     return (descriptor.hashCode().toLong() shl 32 xor annotations.hashCode().toLong())
       .toString(36)
       .replaceFirst("-", "x")
   }
 
-  operator fun contains(descriptor: Key): Boolean = getId(descriptor) in definitions
+  fun canGenerateDefinitions(key: Key): Boolean {
+    return key.annotations
+      .filterIsInstance<JsonSchema.CreateDefinition>()
+      .any { it.value }
+  }
 
-  operator fun set(descriptor: Key, value: JsonObject) {
-    definitions[getId(descriptor)] = value
+  operator fun contains(key: Key): Boolean = getId(key) in definitions
+
+  operator fun set(key: Key, value: JsonObject) {
+    definitions[getId(key)] = value
   }
 
   operator fun get(descriptor: Key): JsonObject {
@@ -287,8 +295,10 @@ internal class JsonSchemaDefinitions {
     }
   }
 
-  fun get(descriptor: Key, create: () -> JsonObject): JsonObject {
-    val id = getId(descriptor)
+  fun get(key: Key, create: () -> JsonObject): JsonObject {
+    if (!isEnabled && !canGenerateDefinitions(key)) return create()
+
+    val id = getId(key)
 
     if (id !in definitions) {
       creator[id] = create

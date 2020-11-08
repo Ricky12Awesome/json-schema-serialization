@@ -2,7 +2,11 @@ import com.github.ricky12awesome.jss.JsonSchema
 import com.github.ricky12awesome.jss.buildJsonSchema
 import com.github.ricky12awesome.jss.encodeToSchema
 import com.github.ricky12awesome.jss.globalJson
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.elementDescriptors
 import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -36,7 +40,7 @@ data class TestSubData(
 )
 
 @Serializable
-sealed class TestSealed {
+sealed class TestSealed(val elements: Map<String, TestSealed> = mapOf()) {
 
   @Serializable
   data class A(val text: String) : TestSealed()
@@ -47,12 +51,14 @@ sealed class TestSealed {
 
 @Serializable
 data class TestNested2(
-  val element: TestNested1? = null
+  @JsonSchema.CreateDefinition(true)
+  val element2: TestNested1? = null
 )
 
 @Serializable
 data class TestNested1(
-  val element: TestNested2? = null
+  @JsonSchema.CreateDefinition(true)
+  val element1: TestNested2? = null
 )
 
 class Tests {
@@ -70,6 +76,6 @@ class Tests {
 
   @Test
   fun `test nested`() {
-//    println(json.encodeToSchema(TestNested1.serializer()))
+    println(json.encodeToSchema(TestNested1.serializer(), false))
   }
 }

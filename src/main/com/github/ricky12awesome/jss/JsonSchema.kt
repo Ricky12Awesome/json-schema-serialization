@@ -88,6 +88,11 @@ annotation class JsonSchema {
   @Retention(AnnotationRetention.BINARY)
   @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
   annotation class Pattern(val pattern: String)
+
+  @SerialInfo
+  @Retention(AnnotationRetention.BINARY)
+  @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
+  annotation class CreateDefinition(val value: Boolean = true)
 }
 
 
@@ -122,9 +127,11 @@ fun Json.stringifyToSchema(descriptor: SerialDescriptor): String = encodeToSchem
 
 /**
  * Stringifies the provided [descriptor] with [buildJsonSchema]
+ *
+ * @param generateDefinitions Should this generate definitions by default
  */
-fun Json.encodeToSchema(descriptor: SerialDescriptor): String {
-  return encodeToString(JsonObject.serializer(), buildJsonSchema(descriptor))
+fun Json.encodeToSchema(descriptor: SerialDescriptor, generateDefinitions: Boolean = true): String {
+  return encodeToString(JsonObject.serializer(), buildJsonSchema(descriptor, generateDefinitions))
 }
 
 @Deprecated(
@@ -137,18 +144,22 @@ fun Json.stringifyToSchema(serializer: SerializationStrategy<*>): String = encod
 /**
  * Stringifies the provided [serializer] with [buildJsonSchema],
  * same as doing `json.stringifyToSchema(serializer.descriptor)`
+ *
+ * @param generateDefinitions Should this generate definitions by default
  */
-fun Json.encodeToSchema(serializer: SerializationStrategy<*>): String {
-  return encodeToSchema(serializer.descriptor)
+fun Json.encodeToSchema(serializer: SerializationStrategy<*>, generateDefinitions: Boolean = true): String {
+  return encodeToSchema(serializer.descriptor, generateDefinitions)
 }
 
 /**
  * Creates a Json Schema using the provided [descriptor]
+ *
+ * @param generateDefinitions Should this generate definitions by default
  */
-fun buildJsonSchema(descriptor: SerialDescriptor): JsonObject {
+fun buildJsonSchema(descriptor: SerialDescriptor, generateDefinitions: Boolean = true): JsonObject {
   val prepend = mapOf("\$schema" to JsonPrimitive("http://json-schema.org/draft-07/schema"))
-  val definitions = JsonSchemaDefinitions()
-  val root = descriptor.createJsonSchema(listOf(), definitions)
+  val definitions = JsonSchemaDefinitions(generateDefinitions)
+  val root = descriptor.createJsonSchema(descriptor.annotations, definitions)
   val append = mapOf("definitions" to definitions.getDefinitionsAsJsonObject())
 
   return JsonObject(prepend + root + append)
@@ -157,5 +168,9 @@ fun buildJsonSchema(descriptor: SerialDescriptor): JsonObject {
 /**
  * Creates a Json Schema using the provided [serializer],
  * same as doing `jsonSchema(serializer.descriptor)`
+ *
+ * @param generateDefinitions Should this generate definitions by default
  */
-fun buildJsonSchema(serializer: SerializationStrategy<*>) = buildJsonSchema(serializer.descriptor)
+fun buildJsonSchema(serializer: SerializationStrategy<*>, generateDefinitions: Boolean = true): JsonObject {
+  return buildJsonSchema(serializer.descriptor, generateDefinitions)
+}
