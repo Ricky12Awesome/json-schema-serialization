@@ -79,7 +79,7 @@ data class Theme(
 Schema
 ------
 ```kotlin
-globalJson.encodeToSchema(Config.serializer())
+globalJson.encodeToSchema(Config.serializer(), generateDefinitions = false)
 ```
 ```json
 {
