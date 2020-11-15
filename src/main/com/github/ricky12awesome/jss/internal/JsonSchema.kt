@@ -111,7 +111,7 @@ internal fun SerialDescriptor.jsonSchemaObjectSealed(definitions: JsonSchemaDefi
     anyOf += JsonObject(newSchema)
   }
 
-  return jsonSchemaElement(annotations, skipNullCheck = true, applyDefaults = false) {
+  return jsonSchemaElement(annotations, skipNullCheck = true, skipTypeCheck = true) {
     if (properties.isNotEmpty()) {
       it["properties"] = JsonObject(properties)
     }
@@ -190,8 +190,8 @@ internal fun SerialDescriptor.createJsonSchema(
   annotations: List<Annotation>,
   definitions: JsonSchemaDefinitions
 ): JsonObject {
-  val key = JsonSchemaDefinitions.Key(this, annotations)
   val combinedAnnotations = annotations + this.annotations
+  val key = JsonSchemaDefinitions.Key(this, combinedAnnotations)
 
   return when (kind.jsonType) {
     JsonType.NUMBER -> definitions.get(key) { jsonSchemaNumber(combinedAnnotations) }
@@ -208,7 +208,8 @@ internal fun SerialDescriptor.createJsonSchema(
 internal fun JsonObjectBuilder.applyJsonSchemaDefaults(
   descriptor: SerialDescriptor,
   annotations: List<Annotation>,
-  skipNullCheck: Boolean = false
+  skipNullCheck: Boolean = false,
+  skipTypeCheck: Boolean = false
 ) {
   if (descriptor.isNullable && !skipNullCheck) {
     this["if"] = buildJson {
@@ -218,7 +219,9 @@ internal fun JsonObjectBuilder.applyJsonSchemaDefaults(
       it["type"] = "null"
     }
   } else {
-    this["type"] = descriptor.jsonLiteral
+    if (!skipTypeCheck) {
+      this["type"] = descriptor.jsonLiteral
+    }
   }
 
   if (descriptor.kind == SerialKind.ENUM) {
@@ -241,12 +244,13 @@ internal fun JsonObjectBuilder.applyJsonSchemaDefaults(
 internal inline fun SerialDescriptor.jsonSchemaElement(
   annotations: List<Annotation>,
   skipNullCheck: Boolean = false,
+  skipTypeCheck: Boolean = false,
   applyDefaults: Boolean = true,
   extra: (JsonObjectBuilder) -> Unit = {}
 ): JsonObject {
   return buildJson {
     if (applyDefaults) {
-      it.applyJsonSchemaDefaults(this, annotations, skipNullCheck)
+      it.applyJsonSchemaDefaults(this, annotations, skipNullCheck, skipTypeCheck)
     }
 
     it.apply(extra)
@@ -272,15 +276,18 @@ internal class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
   fun getId(key: Key): String {
     val (descriptor, annotations) = key
 
-    return (descriptor.hashCode().toLong() shl 32 xor annotations.hashCode().toLong())
-      .toString(36)
-      .replaceFirst("-", "x")
+    return annotations
+      .lastOfInstance<JsonSchema.Definition>()?.id
+      ?.takeIf(String::isNotEmpty)
+      ?: (descriptor.hashCode().toLong() shl 32 xor annotations.hashCode().toLong())
+        .toString(36)
+        .replaceFirst("-", "x")
   }
 
   fun canGenerateDefinitions(key: Key): Boolean {
-    return key.annotations
-      .filterIsInstance<JsonSchema.CreateDefinition>()
-      .any { it.value }
+    return key.annotations.any {
+      it !is JsonSchema.NoDefinition && it is JsonSchema.Definition
+    }
   }
 
   operator fun contains(key: Key): Boolean = getId(key) in definitions
@@ -289,9 +296,11 @@ internal class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
     definitions[getId(key)] = value
   }
 
-  operator fun get(descriptor: Key): JsonObject {
-    return buildJson {
-      it["\$ref"] = "#/definitions/${getId(descriptor)}"
+  operator fun get(key: Key): JsonObject {
+    val id =  getId(key)
+
+    return key.descriptor.jsonSchemaElement(key.annotations, skipNullCheck = true, skipTypeCheck = true) {
+      it["\$ref"] = "#/definitions/$id"
     }
   }
 
@@ -304,9 +313,7 @@ internal class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
       creator[id] = create
     }
 
-    return buildJson {
-      it["\$ref"] = "#/definitions/$id"
-    }
+    return get(key)
   }
 
   fun getDefinitionsAsJsonObject(): JsonObject {

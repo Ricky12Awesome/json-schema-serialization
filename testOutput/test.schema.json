@@ -1,206 +1,150 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
-  "$ref": "#/definitions/183o58zq3y39d",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name for this project."
+    },
+    "theme": {
+      "type": "object",
+      "properties": {
+        "primary": {
+          "description": "Primary color for this theme.",
+          "$ref": "#/definitions/ThemeColor"
+        },
+        "secondary": {
+          "description": "Secondary color for this theme.",
+          "$ref": "#/definitions/ThemeColor"
+        },
+        "accent": {
+          "description": "Accent color for this theme.",
+          "$ref": "#/definitions/ThemeColor"
+        },
+        "background": {
+          "description": "Background color for this theme.",
+          "$ref": "#/definitions/ThemeColor"
+        }
+      }
+    }
+  },
   "definitions": {
-    "1lm2l56gwqosh": {
-      "type": "object",
-      "properties": {
-        "number": {
-          "$ref": "#/definitions/18bamjjy12bk1"
-        }
-      },
-      "required": [
-        "number"
-      ]
-    },
-    "xr8yxhep2sxt": {
-      "type": "number"
-    },
-    "1tl79ageuufi9": {
-      "type": "number"
-    },
-    "x1du17sdz8114v": {
-      "type": "object",
-      "properties": {
-        "text": {
-          "$ref": "#/definitions/1vq26amqu3nl"
-        }
-      },
-      "required": [
-        "text"
-      ]
-    },
-    "1mlzhftji1bsx": {
+    "ThemeColor": {
       "properties": {
         "type": {
           "type": "string",
           "enum": [
-            "TestSealed.A",
-            "TestSealed.B"
+            "HEX",
+            "RGB",
+            "HSV",
+            "HSL"
           ]
         }
       },
       "anyOf": [
         {
-          "type": "null"
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "HEX"
+            },
+            "hex": {
+              "type": "string",
+              "pattern": "#[0-9a-fA-F]{2,6}"
+            }
+          },
+          "required": [
+            "hex"
+          ]
         },
         {
-          "$ref": "#/definitions/x1du17sdz8114v"
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "RGB"
+            },
+            "r": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 255
+            },
+            "g": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 255
+            },
+            "b": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 255
+            }
+          },
+          "required": [
+            "r",
+            "g",
+            "b"
+          ]
         },
         {
-          "$ref": "#/definitions/1lm2l56gwqosh"
-        }
-      ],
-      "required": [
-        "type"
-      ]
-    },
-    "1vq26aqksuhq": {
-      "type": "string",
-      "enum": [
-        "First",
-        "Second",
-        "Third"
-      ]
-    },
-    "183o58zq3y39d": {
-      "type": "object",
-      "properties": {
-        "text": {
-          "$ref": "#/definitions/1vq26aoiy36e"
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "HSV"
+            },
+            "h": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 360
+            },
+            "s": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "v": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            }
+          },
+          "required": [
+            "h",
+            "s",
+            "v"
+          ]
         },
-        "enum": {
-          "$ref": "#/definitions/q3i1cuoc7b41"
-        },
-        "specialEnum": {
-          "$ref": "#/definitions/1vq26aqksuhq"
-        },
-        "rangeInt": {
-          "$ref": "#/definitions/xr8yxhq1teec"
-        },
-        "rangeDouble": {
-          "$ref": "#/definitions/18bamjk7pmmal"
-        },
-        "nested": {
-          "$ref": "#/definitions/9nzmu3mcary9"
-        },
-        "sealed": {
-          "$ref": "#/definitions/1mlzhftji1bsx"
-        },
-        "mapToInt": {
-          "$ref": "#/definitions/xu5yz9hf9k933"
-        },
-        "mapToString": {
-          "$ref": "#/definitions/x1q1hw0o77sydb"
-        }
-      },
-      "required": [
-        "text",
-        "enum",
-        "specialEnum"
-      ]
-    },
-    "1vq26aoiy36e": {
-      "type": "string",
-      "description": "Line 1\nLine 2"
-    },
-    "xr8yxhq1teec": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 100
-    },
-    "1pvlhtlq9v2m9": {
-      "type": "number"
-    },
-    "x1q1hw0o77sydb": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/1vq26amqu3nl"
-      }
-    },
-    "q3i1cuoc7b41": {
-      "type": "string",
-      "enum": [
-        "A",
-        "B",
-        "C"
-      ]
-    },
-    "18bamjk7pmmal": {
-      "type": "number",
-      "minimum": 0.0,
-      "maximum": 1.0
-    },
-    "1vq26amqu3nl": {
-      "type": "string"
-    },
-    "xskpehk1nvgf": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/x75g0ny0xekfz"
-      }
-    },
-    "x134bf5ifs1z3": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/1vq26amqu3nl"
-      }
-    },
-    "9nzmu3mcary9": {
-      "if": {
-        "type": "object"
-      },
-      "else": {
-        "type": "null"
-      },
-      "properties": {
-        "list": {
-          "$ref": "#/definitions/x134bf5ifs1z3"
-        },
-        "sealedList": {
-          "$ref": "#/definitions/xskpehk1nvgf"
-        },
-        "rangeFloat": {
-          "$ref": "#/definitions/1pvlhtlq9v2m9"
-        },
-        "rangeLong": {
-          "$ref": "#/definitions/1tl79ageuufi9"
-        }
-      },
-      "required": [
-        "list"
-      ]
-    },
-    "x75g0ny0xekfz": {
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "TestSealed.A",
-            "TestSealed.B"
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "HSL"
+            },
+            "h": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 360
+            },
+            "s": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "l": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            }
+          },
+          "required": [
+            "h",
+            "s",
+            "l"
           ]
         }
-      },
-      "anyOf": [
-        {
-          "$ref": "#/definitions/x1du17sdz8114v"
-        },
-        {
-          "$ref": "#/definitions/1lm2l56gwqosh"
-        }
       ],
       "required": [
         "type"
       ]
-    },
-    "xu5yz9hf9k933": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/xr8yxhep2sxt"
-      }
-    },
-    "18bamjjy12bk1": {
-      "type": "number"
     }
   }
 }

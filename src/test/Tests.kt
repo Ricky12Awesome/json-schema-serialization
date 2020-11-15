@@ -1,64 +1,58 @@
-import com.github.ricky12awesome.jss.JsonSchema
-import com.github.ricky12awesome.jss.buildJsonSchema
+import com.github.ricky12awesome.jss.JsonSchema.*
+import com.github.ricky12awesome.jss.JsonSchema.IntRange
 import com.github.ricky12awesome.jss.encodeToSchema
 import com.github.ricky12awesome.jss.globalJson
-import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.elementDescriptors
-import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
 @Serializable
-enum class TestEnum { A, B, C }
-
-@Serializable
-data class TestData(
-  @JsonSchema.Description(["Line 1", "Line 2"])
-  val text: String,
-  val enum: TestEnum,
-  @JsonSchema.StringEnum(["First", "Second", "Third"])
-  val specialEnum: String,
-  @JsonSchema.IntRange(0, 100)
-  val rangeInt: Int = 30,
-  @JsonSchema.FloatRange(0.0, 1.0)
-  val rangeDouble: Double = 0.5,
-  val nested: TestSubData? = null,
-  val sealed: TestSealed? = null,
-  val mapToInt: Map<String, Int> = mapOf(),
-  val mapToString: Map<String, String> = mapOf()
+data class Config(
+  @Description(["Name for this project."])
+  val name: String = "",
+  @Description(["Theme for this project."])
+  val theme: Theme = Theme()
 )
 
 @Serializable
-data class TestSubData(
-  val list: List<String>,
-  val sealedList: List<TestSealed> = listOf(),
-  val rangeFloat: Float = 20f,
-  val rangeLong: Long = 20L
-)
+sealed class ThemeColor {
+  @Serializable @SerialName("HEX")
+  data class HEX(
+    @Pattern("#[0-9a-fA-F]{2,6}") val hex: String
+  ) : ThemeColor()
 
-@Serializable
-sealed class TestSealed(val elements: Map<String, TestSealed> = mapOf()) {
+  @Serializable @SerialName("RGB")
+  data class RGB(
+    @IntRange(0, 255) val r: Int,
+    @IntRange(0, 255) val g: Int,
+    @IntRange(0, 255) val b: Int
+  ) : ThemeColor()
 
-  @Serializable
-  data class A(val text: String) : TestSealed()
+  @Serializable @SerialName("HSV")
+  data class HSV(
+    @IntRange(1, 360) val h: Int,
+    @FloatRange(0.0, 1.0) val s: Double,
+    @FloatRange(0.0, 1.0) val v: Double
+  ) : ThemeColor()
 
-  @Serializable
-  data class B(val number: Double) : TestSealed()
+  @Serializable @SerialName("HSL")
+  data class HSL(
+    @IntRange(1, 360) val h: Int,
+    @FloatRange(0.0, 1.0) val s: Double,
+    @FloatRange(0.0, 1.0) val l: Double
+  ) : ThemeColor()
 }
 
 @Serializable
-data class TestNested2(
-  @JsonSchema.CreateDefinition(true)
-  val element2: TestNested1? = null
-)
-
-@Serializable
-data class TestNested1(
-  @JsonSchema.CreateDefinition(true)
-  val element1: TestNested2? = null
+data class Theme(
+  @Description(["Primary color for this theme."]) @Definition("ThemeColor")
+  val primary: ThemeColor = ThemeColor.RGB(128, 128, 128),
+  @Description(["Secondary color for this theme."]) @Definition("ThemeColor")
+  val secondary: ThemeColor = ThemeColor.HSV(0, 0.0, 0.3),
+  @Description(["Accent color for this theme."]) @Definition("ThemeColor")
+  val accent: ThemeColor = ThemeColor.HSL(0, 0.0, 0.8),
+  @Description(["Background color for this theme."]) @Definition("ThemeColor")
+  val background: ThemeColor = ThemeColor.HEX("#242424")
 )
 
 class Tests {
@@ -66,16 +60,11 @@ class Tests {
 
   @Test
   fun `annotated schema`() {
-//    println(json.encodeToSchema(TestData.serializer()))
+    println(json.encodeToSchema(Config.serializer(), false))
   }
 
   @Test
-  fun `test sealed`() {
-//    println(json.encodeToSchema(TestSealed.serializer()))
-  }
+  fun `schema dsl`() {
 
-  @Test
-  fun `test nested`() {
-    println(json.encodeToSchema(TestNested1.serializer(), false))
   }
 }

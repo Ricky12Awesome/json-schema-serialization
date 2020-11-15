@@ -23,15 +23,42 @@ val globalJson by lazy {
 }
 
 /**
- * Represents the type of a json property
+ * Represents the type of a json type
  */
 enum class JsonType(jsonType: String) {
+  /**
+   * Represents the json array type
+   */
   ARRAY("array"),
+
+  /**
+   * Represents the json number type
+   */
   NUMBER("number"),
+
+  /**
+   * Represents the string type
+   */
   STRING("string"),
+
+  /**
+   * Represents the boolean type
+   */
   BOOLEAN("boolean"),
+
+  /**
+   * Represents the object type, this is used for serializing normal classes
+   */
   OBJECT("object"),
+
+  /**
+   * Represents the object type, this is used for serializing sealed classes
+   */
   OBJECT_SEALED("object"),
+
+  /**
+   * Represents the object type, this is used for serializing maps
+   */
   OBJECT_MAP("object");
 
   val json = JsonPrimitive(jsonType)
@@ -89,10 +116,23 @@ annotation class JsonSchema {
   @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
   annotation class Pattern(val pattern: String)
 
+  /**
+   * Should this property be a definition and be referenced using [id]?
+   *
+   * @param id The id for this definition, this will be referenced by '#/definitions/$[id]'
+   */
   @SerialInfo
   @Retention(AnnotationRetention.BINARY)
   @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
-  annotation class CreateDefinition(val value: Boolean = true)
+  annotation class Definition(val id: String)
+
+  /**
+   * This property will not create definitions
+   */
+  @SerialInfo
+  @Retention(AnnotationRetention.BINARY)
+  @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
+  annotation class NoDefinition
 }
 
 
@@ -142,9 +182,10 @@ fun Json.encodeToSchema(descriptor: SerialDescriptor, generateDefinitions: Boole
 fun Json.stringifyToSchema(serializer: SerializationStrategy<*>): String = encodeToSchema(serializer)
 
 /**
- * Stringifies the provided [serializer] with [buildJsonSchema],
- * same as doing `json.stringifyToSchema(serializer.descriptor)`
- *
+ * Stringifies the provided [serializer] with [buildJsonSchema], same as doing
+ * ```kotlin
+ * json.encodeToSchema(serializer.descriptor)
+ * ```
  * @param generateDefinitions Should this generate definitions by default
  */
 fun Json.encodeToSchema(serializer: SerializationStrategy<*>, generateDefinitions: Boolean = true): String {

@@ -8,6 +8,7 @@ plugins {
   kotlin("jvm") version "1.4.10"
   kotlin("plugin.serialization") version "1.4.10"
   id("com.jfrog.bintray") version "1.8.5"
+  id("org.jetbrains.dokka") version "1.4.10.2"
   `maven-publish`
 }
 

@@ -4,10 +4,8 @@
 # json-schema-serialization (jss)
 Adds support for Json Schema using [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization)
 
-Only Supports JVM. Once Kotlin/MPP is more stable and worth-while, then I'll start using it,
-but, at its current state, I don't see much benefit to support Kotlin/MPP.
-
-### Dependency
+Dependency
+----------
 You would need [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) setup to use this dependency
 ##### Gradle / Gradle Kotlin DSL
 
@@ -18,273 +16,233 @@ repositories {
 }
 
 dependencies {
-  implementation("com.github.Ricky12Awesome:json-schema-serialization:0.6.5")
+  implementation("com.github.Ricky12Awesome:json-schema-serialization:0.6.6")
 }
 ```
 
-### Usage
+Usage
+-----
+![](https://i.imgur.com/PwPEMAw.gif)
 
+Code
+----
 ```kotlin
 @Serializable
-enum class TestEnum { A, B, C }
-
-@Serializable
-data class TestData(
-  @JsonSchema.Description(["Line 1", "Line 2"])
-  val text: String,
-  val enum: TestEnum,
-  @JsonSchema.StringEnum(["First", "Second", "Third"])
-  val specialEnum: String,
-  @JsonSchema.IntRange(0, 100)
-  val rangeInt: Int = 30,
-  @JsonSchema.FloatRange(0.0, 1.0)
-  val rangeDouble: Double = 0.5,
-  val nested: TestDataNested? = null,
-  val sealed: TestSealed? = null,
-  val mapToInt: Map<String, Int> = mapOf(),
-  val mapToString: Map<String, String> = mapOf()
+data class Config(
+  @Description(["Name for this project."])
+  val name: String = "",
+  @Description(["Theme for this project."])
+  val theme: Theme = Theme()
 )
 
 @Serializable
-data class TestDataNested(
-  val list: List<String>,
-  val sealedList: List<TestSealed> = listOf(),
-  val rangeFloat: Float = 20f,
-  val rangeLong: Long = 20L
-)
+sealed class ThemeColor {
+  @Serializable @SerialName("HEX")
+  data class HEX(
+    @Pattern("#[0-9a-fA-F]{2,6}") val hex: String
+  ) : ThemeColor()
 
-@Serializable
-sealed class TestSealed {
+  @Serializable @SerialName("RGB")
+  data class RGB(
+    @IntRange(0, 255) val r: Int,
+    @IntRange(0, 255) val g: Int,
+    @IntRange(0, 255) val b: Int
+  ) : ThemeColor()
 
-  @Serializable
-  data class A(val text: String) : TestSealed()
+  @Serializable @SerialName("HSV")
+  data class HSV(
+    @IntRange(1, 360) val h: Int,
+    @FloatRange(0.0, 1.0) val s: Double,
+    @FloatRange(0.0, 1.0) val v: Double
+  ) : ThemeColor()
 
-  @Serializable
-  data class B(val number: Double) : TestSealed()
+  @Serializable @SerialName("HSL")
+  data class HSL(
+    @IntRange(1, 360) val h: Int,
+    @FloatRange(0.0, 1.0) val s: Double,
+    @FloatRange(0.0, 1.0) val l: Double
+  ) : ThemeColor()
 }
-```
-Will generate a schema using
 
+@Serializable
+data class Theme(
+  @Description(["Primary color for this theme."]) @Definition("ThemeColor")
+  val primary: ThemeColor = ThemeColor.RGB(128, 128, 128),
+  @Description(["Secondary color for this theme."]) @Definition("ThemeColor")
+  val secondary: ThemeColor = ThemeColor.HSV(0, 0.0, 0.3),
+  @Description(["Accent color for this theme."]) @Definition("ThemeColor")
+  val accent: ThemeColor = ThemeColor.HSL(0, 0.0, 0.8),
+  @Description(["Background color for this theme."]) @Definition("ThemeColor")
+  val background: ThemeColor = ThemeColor.HEX("#242424")
+)
+```
+Schema
+------
 ```kotlin
-globalJson.encodeToSchema(Test.serializer())
+globalJson.encodeToSchema(Config.serializer())
 ```
-
-Definition names is defined by hash codes
 ```json
 {
   "$schema": "http://json-schema.org/draft-07/schema",
-  "$ref": "#/definitions/183o58zq3y39d",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name for this project."
+    },
+    "theme": {
+      "type": "object",
+      "properties": {
+        "primary": {
+          "description": "Primary color for this theme.",
+          "$ref": "#/definitions/ThemeColor"
+        },
+        "secondary": {
+          "description": "Secondary color for this theme.",
+          "$ref": "#/definitions/ThemeColor"
+        },
+        "accent": {
+          "description": "Accent color for this theme.",
+          "$ref": "#/definitions/ThemeColor"
+        },
+        "background": {
+          "description": "Background color for this theme.",
+          "$ref": "#/definitions/ThemeColor"
+        }
+      }
+    }
+  },
   "definitions": {
-    "1lm2l56gwqosh": {
-      "type": "object",
-      "properties": {
-        "number": {
-          "$ref": "#/definitions/18bamjjy12bk1"
-        }
-      },
-      "required": [
-        "number"
-      ]
-    },
-    "xr8yxhep2sxt": {
-      "type": "number"
-    },
-    "1tl79ageuufi9": {
-      "type": "number"
-    },
-    "x1du17sdz8114v": {
-      "type": "object",
-      "properties": {
-        "text": {
-          "$ref": "#/definitions/1vq26amqu3nl"
-        }
-      },
-      "required": [
-        "text"
-      ]
-    },
-    "1mlzhftji1bsx": {
+    "ThemeColor": {
       "properties": {
         "type": {
           "type": "string",
           "enum": [
-            "TestSealed.A",
-            "TestSealed.B"
+            "HEX",
+            "RGB",
+            "HSV",
+            "HSL"
           ]
         }
       },
       "anyOf": [
         {
-          "type": "null"
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "HEX"
+            },
+            "hex": {
+              "type": "string",
+              "pattern": "#[0-9a-fA-F]{2,6}"
+            }
+          },
+          "required": [
+            "hex"
+          ]
         },
         {
-          "$ref": "#/definitions/x1du17sdz8114v"
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "RGB"
+            },
+            "r": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 255
+            },
+            "g": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 255
+            },
+            "b": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 255
+            }
+          },
+          "required": [
+            "r",
+            "g",
+            "b"
+          ]
         },
         {
-          "$ref": "#/definitions/1lm2l56gwqosh"
-        }
-      ],
-      "required": [
-        "type"
-      ]
-    },
-    "1vq26aqksuhq": {
-      "type": "string",
-      "enum": [
-        "First",
-        "Second",
-        "Third"
-      ]
-    },
-    "183o58zq3y39d": {
-      "type": "object",
-      "properties": {
-        "text": {
-          "$ref": "#/definitions/1vq26aoiy36e"
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "HSV"
+            },
+            "h": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 360
+            },
+            "s": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "v": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            }
+          },
+          "required": [
+            "h",
+            "s",
+            "v"
+          ]
         },
-        "enum": {
-          "$ref": "#/definitions/q3i1cuoc7b41"
-        },
-        "specialEnum": {
-          "$ref": "#/definitions/1vq26aqksuhq"
-        },
-        "rangeInt": {
-          "$ref": "#/definitions/xr8yxhq1teec"
-        },
-        "rangeDouble": {
-          "$ref": "#/definitions/18bamjk7pmmal"
-        },
-        "nested": {
-          "$ref": "#/definitions/9nzmu3mcary9"
-        },
-        "sealed": {
-          "$ref": "#/definitions/1mlzhftji1bsx"
-        },
-        "mapToInt": {
-          "$ref": "#/definitions/xu5yz9hf9k933"
-        },
-        "mapToString": {
-          "$ref": "#/definitions/x1q1hw0o77sydb"
-        }
-      },
-      "required": [
-        "text",
-        "enum",
-        "specialEnum"
-      ]
-    },
-    "1vq26aoiy36e": {
-      "type": "string",
-      "description": "Line 1\nLine 2"
-    },
-    "xr8yxhq1teec": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 100
-    },
-    "1pvlhtlq9v2m9": {
-      "type": "number"
-    },
-    "x1q1hw0o77sydb": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/1vq26amqu3nl"
-      }
-    },
-    "q3i1cuoc7b41": {
-      "type": "string",
-      "enum": [
-        "A",
-        "B",
-        "C"
-      ]
-    },
-    "18bamjk7pmmal": {
-      "type": "number",
-      "minimum": 0.0,
-      "maximum": 1.0
-    },
-    "1vq26amqu3nl": {
-      "type": "string"
-    },
-    "xskpehk1nvgf": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/x75g0ny0xekfz"
-      }
-    },
-    "x134bf5ifs1z3": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/1vq26amqu3nl"
-      }
-    },
-    "9nzmu3mcary9": {
-      "if": {
-        "type": "object"
-      },
-      "else": {
-        "type": "null"
-      },
-      "properties": {
-        "list": {
-          "$ref": "#/definitions/x134bf5ifs1z3"
-        },
-        "sealedList": {
-          "$ref": "#/definitions/xskpehk1nvgf"
-        },
-        "rangeFloat": {
-          "$ref": "#/definitions/1pvlhtlq9v2m9"
-        },
-        "rangeLong": {
-          "$ref": "#/definitions/1tl79ageuufi9"
-        }
-      },
-      "required": [
-        "list"
-      ]
-    },
-    "x75g0ny0xekfz": {
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "TestSealed.A",
-            "TestSealed.B"
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "HSL"
+            },
+            "h": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 360
+            },
+            "s": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "l": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            }
+          },
+          "required": [
+            "h",
+            "s",
+            "l"
           ]
         }
-      },
-      "anyOf": [
-        {
-          "$ref": "#/definitions/x1du17sdz8114v"
-        },
-        {
-          "$ref": "#/definitions/1lm2l56gwqosh"
-        }
       ],
       "required": [
         "type"
       ]
-    },
-    "xu5yz9hf9k933": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/xr8yxhep2sxt"
-      }
-    },
-    "18bamjjy12bk1": {
-      "type": "number"
     }
   }
 }
 ```
 
-### Some Features I'm thinking about adding
+Some Features I'm thinking about adding
+---------------------------------------
 
 - Json Schema DSL
 - Json Schema Data Object instead of using `JsonObject`
 
-### Json Schema DSL
+Json Schema DSL
+---------------
+
 Json Schema DSL might look something like
 
 ```kotlin
