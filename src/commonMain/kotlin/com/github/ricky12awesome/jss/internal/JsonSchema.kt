@@ -50,6 +50,7 @@ internal fun SerialDescriptor.jsonSchemaObject(definitions: JsonSchemaDefinition
   return jsonSchemaElement(annotations) {
     if (properties.isNotEmpty()) {
       it["properties"] = JsonObject(properties)
+      it["additionalProperties"] = JsonPrimitive(false)
     }
 
     if (required.isNotEmpty()) {
