@@ -1,11 +1,8 @@
 package com.github.ricky12awesome.jss.internal
 
 import com.github.ricky12awesome.jss.JsonSchema
-import com.github.ricky12awesome.jss.JsonSchema.Description
-import com.github.ricky12awesome.jss.JsonSchema.StringEnum
+import com.github.ricky12awesome.jss.JsonSchema.*
 import com.github.ricky12awesome.jss.JsonSchema.IntRange
-import com.github.ricky12awesome.jss.JsonSchema.FloatRange
-import com.github.ricky12awesome.jss.JsonSchema.Pattern
 import com.github.ricky12awesome.jss.JsonType
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.*
@@ -60,14 +57,21 @@ internal fun SerialDescriptor.jsonSchemaObject(definitions: JsonSchemaDefinition
 }
 
 internal fun SerialDescriptor.jsonSchemaObjectMap(definitions: JsonSchemaDefinitions): JsonObject {
-  return jsonSchemaElement(annotations, skipNullCheck = false) {
+  return jsonSchemaElement(annotations, skipNullCheck = false) { it ->
     val (key, value) = elementDescriptors.toList()
 
     require(key.kind == PrimitiveKind.STRING) {
       "cannot have non string keys in maps, ${this.serialName} $key $value"
     }
 
-    it["additionalProperties"] = value.createJsonSchema(getElementAnnotations(1) + annotations, definitions)
+    val filteredAnnotation = annotations.filter { annotation ->
+      when(annotation) {
+        is Description, is Definition, is NoDefinition -> false
+        else -> true
+      }
+    }
+
+    it["additionalProperties"] = value.createJsonSchema(getElementAnnotations(1) + filteredAnnotation, definitions)
   }
 }
 
@@ -134,7 +138,14 @@ internal fun SerialDescriptor.jsonSchemaArray(
   return jsonSchemaElement(annotations) {
     val type = getElementDescriptor(0)
 
-    it["items"] = type.createJsonSchema(getElementAnnotations(0) + annotations, definitions)
+    val filteredAnnotation = annotations.filter { annotation ->
+      when(annotation) {
+        is Description, is Definition, is NoDefinition -> false
+        else -> true
+      }
+    }
+
+    it["items"] = type.createJsonSchema(getElementAnnotations(0) + filteredAnnotation, definitions)
   }
 }
 
@@ -277,7 +288,7 @@ internal class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
     val (descriptor, annotations) = key
 
     return annotations
-      .lastOfInstance<JsonSchema.Definition>()?.id
+      .lastOfInstance<Definition>()?.id
       ?.takeIf(String::isNotEmpty)
       ?: (descriptor.hashCode().toLong() shl 32 xor annotations.hashCode().toLong())
         .toString(36)
@@ -286,7 +297,7 @@ internal class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
 
   fun canGenerateDefinitions(key: Key): Boolean {
     return key.annotations.any {
-      it !is JsonSchema.NoDefinition && it is JsonSchema.Definition
+      it !is JsonSchema.NoDefinition && it is Definition
     }
   }
 
