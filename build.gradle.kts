@@ -112,8 +112,7 @@ kotlin {
 }
 
 publishing {
-  val localProperties = loadProperties(file("./local.properties").absolutePath)
-  val key: String? = localProperties.getProperty("bintray.apiKey") ?: System.getenv("BINTRAY_API_KEY")
+  val key = System.getenv("BINTRAY_API_KEY")
   val user = "ricky12awesome"
 
   repositories {
