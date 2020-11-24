@@ -9,7 +9,6 @@ import com.github.ricky12awesome.jss.JsonSchema.Pattern
 import com.github.ricky12awesome.jss.JsonType
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.*
-import java.util.concurrent.ConcurrentHashMap
 
 @PublishedApi
 internal inline val SerialDescriptor.jsonLiteral
@@ -270,8 +269,8 @@ internal class JsonObjectBuilder(
 }
 
 internal class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
-  private val definitions: MutableMap<String, JsonObject> = ConcurrentHashMap()
-  private val creator: MutableMap<String, () -> JsonObject> = ConcurrentHashMap()
+  private val definitions: MutableMap<String, JsonObject> = mutableMapOf()
+  private val creator: MutableMap<String, () -> JsonObject> = mutableMapOf()
 
   fun getId(key: Key): String {
     val (descriptor, annotations) = key

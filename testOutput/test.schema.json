@@ -1,148 +1,52 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema",
   "type": "object",
   "properties": {
-    "name": {
-      "type": "string",
-      "description": "Name for this project."
+    "array": {
+      "type": "array",
+      "description": "Some array with random data",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "$ref": "#/definitions/data"
+      }
     },
-    "theme": {
+    "map": {
       "type": "object",
-      "properties": {
-        "primary": {
-          "description": "Primary color for this theme.",
-          "$ref": "#/definitions/ThemeColor"
-        },
-        "secondary": {
-          "description": "Secondary color for this theme.",
-          "$ref": "#/definitions/ThemeColor"
-        },
-        "accent": {
-          "description": "Accent color for this theme.",
-          "$ref": "#/definitions/ThemeColor"
-        },
-        "background": {
-          "description": "Background color for this theme.",
-          "$ref": "#/definitions/ThemeColor"
-        }
+      "description": "Some map with random data",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^(\\d*)$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "$ref": "#/definitions/data"
       }
     }
   },
+  "required": [
+    "array",
+    "map"
+  ],
   "definitions": {
-    "ThemeColor": {
+    "data": {
+      "type": "object",
       "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of something"
+        },
         "type": {
           "type": "string",
           "enum": [
-            "HEX",
-            "RGB",
-            "HSV",
-            "HSL"
+            "A",
+            "B",
+            "C"
           ]
         }
       },
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "const": "HEX"
-            },
-            "hex": {
-              "type": "string",
-              "pattern": "#[0-9a-fA-F]{2,6}"
-            }
-          },
-          "required": [
-            "hex"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "const": "RGB"
-            },
-            "r": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 255
-            },
-            "g": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 255
-            },
-            "b": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 255
-            }
-          },
-          "required": [
-            "r",
-            "g",
-            "b"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "const": "HSV"
-            },
-            "h": {
-              "type": "number",
-              "minimum": 1,
-              "maximum": 360
-            },
-            "s": {
-              "type": "number",
-              "minimum": 0.0,
-              "maximum": 1.0
-            },
-            "v": {
-              "type": "number",
-              "minimum": 0.0,
-              "maximum": 1.0
-            }
-          },
-          "required": [
-            "h",
-            "s",
-            "v"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "const": "HSL"
-            },
-            "h": {
-              "type": "number",
-              "minimum": 1,
-              "maximum": 360
-            },
-            "s": {
-              "type": "number",
-              "minimum": 0.0,
-              "maximum": 1.0
-            },
-            "l": {
-              "type": "number",
-              "minimum": 0.0,
-              "maximum": 1.0
-            }
-          },
-          "required": [
-            "h",
-            "s",
-            "l"
-          ]
-        }
-      ],
       "required": [
+        "name",
         "type"
       ]
     }

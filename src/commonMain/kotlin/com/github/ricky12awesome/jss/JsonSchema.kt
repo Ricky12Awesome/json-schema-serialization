@@ -1,12 +1,13 @@
-@file:OptIn(ExperimentalSerializationApi::class)
 package com.github.ricky12awesome.jss
 
 import com.github.ricky12awesome.jss.internal.JsonSchemaDefinitions
 import com.github.ricky12awesome.jss.internal.createJsonSchema
 import kotlinx.serialization.*
-import com.github.ricky12awesome.jss.internal.jsonSchemaObject
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.*
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KProperty
 
 /**
  * Global Json object for basic serialization. uses Stable Configuration.
@@ -135,7 +136,9 @@ annotation class JsonSchema {
   annotation class NoDefinition
 }
 
-
+/**
+ * Will be removed in 0.8.0
+ */
 @Deprecated(
   message = "Use encodeWithSchema instead",
   replaceWith = ReplaceWith("this.encodeWithSchema(serializer, value, url)"),
@@ -158,6 +161,9 @@ fun <T> Json.encodeWithSchema(serializer: SerializationStrategy<T>, value: T, ur
   return encodeToString(JsonObject.serializer(), JsonObject(append + json))
 }
 
+/**
+ * Will be removed in 0.8.0
+ */
 @Deprecated(
   message = "Use encodeToSchema instead",
   replaceWith = ReplaceWith("this.encodeToSchema(descriptor)"),
@@ -174,6 +180,9 @@ fun Json.encodeToSchema(descriptor: SerialDescriptor, generateDefinitions: Boole
   return encodeToString(JsonObject.serializer(), buildJsonSchema(descriptor, generateDefinitions))
 }
 
+/**
+ * Will be removed in 0.8.0
+ */
 @Deprecated(
   message = "Use encodeToSchema instead",
   replaceWith = ReplaceWith("this.encodeToSchema(serializer)"),
@@ -195,11 +204,11 @@ fun Json.encodeToSchema(serializer: SerializationStrategy<*>, generateDefinition
 /**
  * Creates a Json Schema using the provided [descriptor]
  *
- * @param generateDefinitions Should this generate definitions by default
+ * @param autoDefinitions automatically generate definitions by default
  */
-fun buildJsonSchema(descriptor: SerialDescriptor, generateDefinitions: Boolean = true): JsonObject {
+fun buildJsonSchema(descriptor: SerialDescriptor, autoDefinitions: Boolean = false): JsonObject {
   val prepend = mapOf("\$schema" to JsonPrimitive("http://json-schema.org/draft-07/schema"))
-  val definitions = JsonSchemaDefinitions(generateDefinitions)
+  val definitions = JsonSchemaDefinitions(autoDefinitions)
   val root = descriptor.createJsonSchema(descriptor.annotations, definitions)
   val append = mapOf("definitions" to definitions.getDefinitionsAsJsonObject())
 

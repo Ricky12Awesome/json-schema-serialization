@@ -5,8 +5,25 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 
+private fun <K, V> MutableMap<K, V>.remapMerge(
+  key: K,
+  value: V,
+  remap: (V, V) -> V?
+): V? {
+  val oldValue: V? = this[key]
+  val newValue: V? = if (oldValue == null) value else remap(oldValue, value)
+
+  if (newValue == null) {
+    remove(key)
+  } else {
+    put(key, newValue)
+  }
+
+  return newValue
+}
+
 fun MutableMap<String, JsonElement>.merge(key: String, element: JsonElement): JsonElement? {
-  return merge(key, element, ::merge)
+  return remapMerge(key, element, ::merge)
 }
 
 fun merge(previous: JsonElement, value: JsonElement): JsonElement? {

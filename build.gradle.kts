@@ -1,13 +1,8 @@
-import com.jfrog.bintray.gradle.BintrayExtension.PackageConfig
-import com.jfrog.bintray.gradle.BintrayExtension.VersionConfig
-import com.jfrog.bintray.gradle.tasks.BintrayUploadTask
-import org.gradle.api.publish.maven.internal.artifact.FileBasedMavenArtifact
-import org.jetbrains.kotlin.konan.properties.Properties
+import org.jetbrains.kotlin.konan.properties.loadProperties
 
 plugins {
-  kotlin("jvm") version "1.4.10"
-  kotlin("plugin.serialization") version "1.4.10"
-  id("com.jfrog.bintray") version "1.8.5"
+  kotlin("multiplatform") version "1.4.20"
+  kotlin("plugin.serialization") version "1.4.20"
   id("org.jetbrains.dokka") version "1.4.10.2"
   `maven-publish`
 }
@@ -17,117 +12,124 @@ repositories {
   jcenter()
 }
 
-dependencies {
-  implementation(kotlin("stdlib"))
-  implementation(kotlin("reflect"))
+kotlin {
+  jvm {
+    compilations.all {
+      kotlinOptions.jvmTarget = "1.8"
+    }
 
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.1")
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
-
-  testImplementation(kotlin("test-junit5"))
-
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.0.0")
-}
-
-kotlin.sourceSets["main"].kotlin.srcDir("src/main/")
-kotlin.sourceSets["test"].kotlin.srcDir("src/test/")
-
-sourceSets["main"].resources.srcDir("resources/main/")
-sourceSets["test"].resources.srcDir("resources/test/")
-
-val sourcesJar by tasks.creating(Jar::class) {
-  archiveClassifier.set("sources")
-
-  from(sourceSets["main"].allSource)
-
-  dependsOn(JavaPlugin.CLASSES_TASK_NAME)
-}
-
-val javadocJar by tasks.creating(Jar::class) {
-  archiveClassifier.set("javadoc")
-
-  from(tasks["javadoc"])
-
-  dependsOn(JavaPlugin.JAVADOC_TASK_NAME)
-}
-
-tasks {
-  compileKotlin {
-    kotlinOptions {
-      freeCompilerArgs = listOf(
-        "-Xopt-in=kotlin.RequiresOptIn",
-        "-Xopt-in=kotlinx.serialization.ExperimentalSerializationApi"
-      )
-      jvmTarget = "1.8"
+    testRuns.all {
+      executionTask {
+        useJUnitPlatform()
+      }
     }
   }
 
-  compileTestKotlin {
-    kotlinOptions {
-      jvmTarget = "1.8"
+  js(BOTH) {
+    nodejs {
+      testTask {
+        with(compilation) {
+          kotlinOptions {
+            moduleKind = "commonjs"
+          }
+        }
+      }
     }
   }
 
-  test {
-    useJUnitPlatform()
+  mingwX64()
+  linuxX64()
+  macosX64()
+
+  sourceSets {
+    val commonMain by getting {
+      dependencies {
+        implementation(kotlin("reflect"))
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
+      }
+    }
+
+    val commonTest by getting {
+      dependencies {
+        implementation(kotlin("test-common"))
+        implementation(kotlin("test-annotations-common"))
+      }
+    }
+
+    val jvmMain by getting
+    val jvmTest by getting {
+      dependencies {
+        implementation(kotlin("test-junit5"))
+        runtimeOnly("org.junit.jupiter:junit-jupiter-engine:5.0.0")
+      }
+    }
+
+    val jsMain by getting
+    val jsTest by getting {
+      dependencies {
+        implementation(kotlin("test-js"))
+      }
+    }
+
+    val nativeMain by creating {
+      dependsOn(commonMain)
+    }
+
+    val nativeTest by creating {
+      dependsOn(commonTest)
+    }
+
+    val mingwX64Main by getting {
+      dependsOn(nativeMain)
+    }
+
+    val mingwX64Test by getting {
+      dependsOn(nativeTest)
+    }
+
+    val linuxX64Main by getting {
+      dependsOn(nativeMain)
+    }
+
+    val linuxX64Test by getting {
+      dependsOn(nativeTest)
+    }
+
+    val macosX64Main by getting {
+      dependsOn(nativeMain)
+    }
+
+    val macosX64Test by getting {
+      dependsOn(nativeTest)
+    }
+
+    all {
+      languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
+      languageSettings.useExperimentalAnnotation("kotlinx.serialization.ExperimentalSerializationApi")
+      languageSettings.enableLanguageFeature("InlineClasses")
+    }
   }
 }
 
 publishing {
-  publications {
-    create<MavenPublication>("maven") {
-      artifact(sourcesJar)
-      artifact(javadocJar)
-
-      from(components["java"])
-    }
-  }
+  val localProperties = loadProperties(file("./local.properties").absolutePath)
+  val key: String? = localProperties.getProperty("bintray.apiKey") ?: System.getenv("BINTRAY_API_KEY")
+  val user = "ricky12awesome"
 
   repositories {
     mavenLocal()
-  }
-}
 
-val properties = Properties().apply {
-  val file = file("local.properties")
-  if (file.exists()) {
-    file.inputStream().use(::load)
-  }
-}
+    if (key != null) {
+      maven {
+        name = "bintray"
+        url = uri("https://api.bintray.com/maven/$user/github/json-schema-serialization/;publish=0;override=1")
 
-val bintrayApiKey: String? = properties.getProperty("bintray.apiKey")
-val bintrayUser: String? = properties.getProperty("bintray.user")
-val bintrayRepo: String? = properties.getProperty("bintray.repo")
-val bintrayIssueTracker: String? = properties.getProperty("bintray.issueTracker")
-val bintrayGithubRepo: String? = properties.getProperty("bintray.githubRepo")
-val bintrayWebsite: String? = properties.getProperty("bintray.website")
-val bintrayVCS: String? = properties.getProperty("bintray.vcs")
-val all = arrayOf(bintrayUser, bintrayRepo, bintrayIssueTracker, bintrayGithubRepo, bintrayWebsite, bintrayVCS)
-
-if (all.all { it != null }) {
-  bintray {
-    key = bintrayApiKey
-    user = bintrayUser
-    publish = false
-
-    setPublications("maven")
-
-    configure(pkg, closureOf<PackageConfig> {
-      repo = bintrayRepo
-      name = project.name
-      publicDownloadNumbers = true
-      issueTrackerUrl = bintrayIssueTracker
-      githubRepo = bintrayGithubRepo
-      websiteUrl = bintrayWebsite
-      vcsUrl = bintrayVCS
-
-      setLicenses("MIT")
-
-      configure(version, closureOf<VersionConfig> {
-        name = "${project.version}"
-        vcsTag = "v$name"
-      })
-    })
+        credentials {
+          username = user
+          password = key
+        }
+      }
+    }
   }
 }
 
