@@ -1,17 +1,22 @@
 language: java
+install: skip
+os: osx
+osx_image: xcode11
+jdk: oraclejdk11
+after_success:
+    - ./gradlew compileMacosX64 --scan
+    - ./gradlew publishMacosPublicationToBintrayRepository
 
-matrix:
-  include:
+#matrix:
+#  include:
 #    - os: linux
 #      dist: bionic
 #      jdk: oraclejdk11
 #      after_success:
 #        - ./gradlew publishAllPublicationsToBintrayRepository
-    - os: osx
-      osx_image: xcode11
-      jdk: oraclejdk11
-      after_success:
-        - ./gradlew publishMacosPublicationToBintrayRepository
-
-script:
-  - ./gradlew build --scan
+#    - os: osx
+#      osx_image: xcode11
+#      jdk: oraclejdk11
+#      after_success:
+#        - ./gradlew compileMacosX64 --scan
+#        - ./gradlew publishMacosPublicationToBintrayRepository
