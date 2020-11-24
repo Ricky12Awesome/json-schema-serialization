@@ -4,8 +4,7 @@ os: osx
 osx_image: xcode11
 jdk: oraclejdk11
 after_success:
-    - ./gradlew compileKotlinMacosX64
-    - ./gradlew publishMacosPublicationToBintrayRepository
+    - ./gradlew publishMacosX64PublicationToBintrayRepository
 
 #matrix:
 #  include:
