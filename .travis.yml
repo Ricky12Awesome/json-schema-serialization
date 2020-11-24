@@ -1,1 +1,17 @@
 language: java
+
+matrix:
+  include:
+#    - os: linux
+#      dist: bionic
+#      jdk: oraclejdk11
+#      after_success:
+#        - ./gradlew publishAllPublicationsToBintrayRepository
+    - os: osx
+      osx_image: xcode11
+      jdk: oraclejdk11
+      after_success:
+        - ./gradlew publishMacosPublicationToBintrayRepository
+
+script:
+  - ./gradlew build --scan
