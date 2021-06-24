@@ -321,7 +321,6 @@ internal class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
     val id = getId(key)
 
     if (id !in definitions) {
-      println("adding definition callback '$id'")
       creator[id] = create
     }
 
@@ -333,9 +332,7 @@ internal class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
       creator.filter { (id, create) ->
         id !in definitions
       }.forEach { (id, create) ->
-        println("creating definition '$id'")
         definitions[id] = create()
-//        creator.remove(id)
       }
     }
 
