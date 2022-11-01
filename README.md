@@ -1,6 +1,7 @@
-[![Download](https://api.bintray.com/packages/ricky12awesome/github/json-schema-serialization/images/download.svg)](https://bintray.com/ricky12awesome/github/json-schema-serialization/_latestVersion)
-[![Jitpack](https://jitpack.io/v/Ricky12Awesome/json-schema-serialization.svg)](https://jitpack.io/#Ricky12Awesome/json-schema-serialization)
-[![Build Status](https://travis-ci.org/Ricky12Awesome/json-schema-serialization.svg?branch=master)](https://travis-ci.org/Ricky12Awesome/json-schema-serialization)
+# ⚠️Important
+ 
+I lost interest in this project, that why there hasn't been any changes for over 2 years
+if anyone wants to maintain this project or a fork of this project, then I will update this readme
 
 # json-schema-serialization (jss)
 Adds support for Json Schema using [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization)
