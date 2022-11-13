@@ -1,9 +1,9 @@
 import org.jetbrains.kotlin.konan.properties.loadProperties
 
 plugins {
-  kotlin("multiplatform") version "1.4.20"
-  kotlin("plugin.serialization") version "1.4.20"
-  id("org.jetbrains.dokka") version "1.4.10.2"
+  kotlin("multiplatform") version "1.5.10"
+  kotlin("plugin.serialization") version "1.5.10"
+  id("org.jetbrains.dokka") version "1.4.32"
   `maven-publish`
 }
 
@@ -45,7 +45,7 @@ kotlin {
     val commonMain by getting {
       dependencies {
         implementation(kotlin("reflect"))
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
       }
     }
 
